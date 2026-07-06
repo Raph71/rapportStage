@@ -23,10 +23,10 @@
 \REntre{GLaDOS}
 
 % Mots clés du Thésaurus ou mots clés pour les metadatas du pdf
-\Kone{Recherche fondamentale} % Nature de l'activité
-\Ktwo{Transport et Télécommunications} % Branche d'activité économique
-\Kthree{Informatique} % Domaines technologiques
-\Kfourth{Produits chimiques} % Application Physique directe
+\Kone{Système d'alerting} % Nature de l'activité
+\Ktwo{Criticité des alarmes} % Branche d'activité économique
+\Kthree{Observabilité} % Domaines technologiques
+\Kfourth{Cloud AWS (ECS, CloudWatch, Lambda)} % Application Physique directe
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \Semestre{Printemps 2026}
@@ -38,33 +38,30 @@
 
 \newcommand{\titletext}{
 
-    Ce stage s'est déroulé dans l'entreprise Winamax, au sein de l'équipe infrastructure. Il a consisté à travailler en
-    coopération avec un groupe d'ingénieur sur un dispositif à effet tunnel
-    quantique, dans le but de fournir, aux cobayes, un outil leur permettant de
-    placer deux portails où des objets peuvent passer au travers.
+    Ce stage s'est déroulé dans l'entreprise Winamax, au sein de l'équipe infrastructure. Il a consisté à améliorer
+    le système d'alerting afin de passer d'alarmes peu contextualisées à un modèle basé sur plusieurs niveaux de
+    criticité, orienté vers le service réellement impacté.
 
     Les différentes phases de travail successivement réalisées sont :
 
     \begin{itemize}
-        \item Déterminer les besoins et les technologies à utiliser
-        \item Réaliser des tests en laboratoire afin de confirmer l'efficacité des portails
-        \item Observer le comportement d'un cobaye lors de l'utilisation du ASHPoD
+        \item Étudier l'existant et dresser une cartographie des alarmes de la plateforme
+        \item Définir des niveaux de criticité pertinents pour l'astreinte
+        \item Concevoir une stratégie d'alerting centrée sur les symptômes des incidents
+        \item Préparer l'évolution technique autour des composants ECS, EventBridge, CloudWatch et Lambda
     \end{itemize}
 
-
-    L'étude s'appuie sur des technologies de pointes et l'expérimentation quantique.
-
-    L'enjeu est une amélioration du déplacement de Sapiens en lui permettant
-    d'appréhender d'une façon révolutionnaire son environnement.
+    L'enjeu est de réduire la fatigue liée aux alertes, d'améliorer la visibilité opérationnelle de la plateforme
+    et de permettre une résolution proactive des incidents, avant notification par les utilisateurs.
 }
 
 
 
 %% En mode Année - Mois - Jour
 %\date{\today} % Pour la date de compilation
-\date{2038-01-19}
+\date{\today}
 
-\author{{\sc TARGARYEN} Daemeon
+\author{{\sc GONCALVES} Raphaël
 % \and
 % {\sc Nom} Prénom
 % \break
@@ -76,10 +73,10 @@
 }
 
 % Texte affiché sur le carré bleu
-\newcommand{\jobposition}{Ingénieur R\&D}
+\newcommand{\jobposition}{Ingénieur R\&T}
 %\title{Vous êtes probablement assez bon pour travailler dans cette entreprise pour laquelle vous pensez ne pas être assez bon.}
 
-\title{Aide à la réalisation d'un dispositif à effet tunnel quantique}
+\title{Amélioration du système d'alerting de Winamax}
 
 %%%%%%% Pour les métadonnées
 % Fonctionne, seulement il y a un warning à cause des "\\" dans le title
@@ -156,6 +153,11 @@
 
     \clearpage
 
+    % Plan du rapport (version initiale basée sur la spec)
+    % 1) Présentation du contexte technique et opérationnel
+    % 2) Analyse de l'existant sur la chaîne de création d'alarmes
+    % 3) Conception des niveaux de criticité et de la stratégie d'alerting
+    % 4) Mise en oeuvre, validation et perspectives
     \import{latex-files/}{presentation.tex}
     \import{latex-files/}{one.tex}
     \import{latex-files/}{two.tex}

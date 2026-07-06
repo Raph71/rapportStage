@@ -1,7 +1,69 @@
-\chapter{Deuxième point important}
+\chapter{Conception du modèle de criticité}
 
-\section{Un sous-point intéressant}
+\section{Principes de conception}
 
-\section{Un deuxième sous-point intéressant}
+La conception proposée repose sur un principe simple : une alerte doit représenter un risque opérationnel clair,
+compréhensible et actionnable.
 
-\section{Un trosième sous-point intéressant}
+Pour atteindre cet objectif, les règles de conception suivantes sont appliquées :
+\begin{itemize}
+	\item privilégier les signaux liés aux symptômes de panne plutôt qu'aux seules causes techniques,
+	\item expliciter le niveau de criticité de chaque alerte,
+	\item associer chaque alerte à un périmètre de responsabilité identifié (service, équipe),
+	\item standardiser la structure des notifications pour accélérer le diagnostic initial.
+\end{itemize}
+
+\section{Niveaux de criticité et stratégie de notification}
+
+Le modèle visé distingue plusieurs niveaux de criticité, permettant d'adapter la réponse attendue et le canal de
+notification.
+
+Sans figer ici une nomenclature définitive, la logique générale est la suivante :
+\begin{itemize}
+	\item criticité haute : impact utilisateur avéré ou imminent, mobilisation immédiate de l'astreinte,
+	\item criticité intermédiaire : dégradation significative à surveiller avec intervention planifiée,
+	\item criticité faible : signal d'observabilité utile mais non bloquant à court terme.
+\end{itemize}
+
+Cette hiérarchisation doit réduire le bruit et améliorer la qualité des décisions en phase d'incident.
+
+\begin{table}[h]
+	\centering
+	\caption{Matrice de criticité proposée (version initiale)}
+	\label{tab:criticite-initiale}
+	\begin{tabular}{|p{0.2\textwidth}|p{0.35\textwidth}|p{0.35\textwidth}|}
+		\hline
+		\textbf{Niveau} & \textbf{Critère principal} & \textbf{Réponse attendue} \\
+		\hline
+		Haute & Impact utilisateur avéré ou imminent & Notification immédiate de l'astreinte et traitement prioritaire \\
+		\hline
+		Intermédiaire & Dégradation significative sans arrêt complet & Investigation planifiée dans une fenêtre courte \\
+		\hline
+		Faible & Anomalie non bloquante à court terme & Suivi en observation et traitement différé \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\section{Traçabilité, maintenabilité et gouvernance}
+
+Au-delà des seuils d'alarme, la solution doit rester maintenable dans le temps. Le travail de conception intègre
+donc des exigences transverses :
+\begin{itemize}
+	\item traçabilité des règles d'alerting,
+	\item conventions homogènes de nommage,
+	\item gestion claire du cycle de vie des alarmes,
+	\item possibilité d'évolution progressive sans rupture de service.
+\end{itemize}
+
+La gouvernance de ces règles est essentielle pour éviter le retour à un système trop bruyant ou incohérent.
+
+\section{Recommandations de déploiement progressif}
+
+Pour sécuriser l'adoption du modèle de criticité, il est recommandé de procéder par itérations :
+\begin{itemize}
+	\item commencer par un périmètre limité de services à fort enjeu,
+	\item mesurer l'effet des changements sur le volume et la qualité des alertes,
+	\item ajuster les règles avant extension à l'ensemble de la plateforme.
+\end{itemize}
+
+Cette stratégie permet de maîtriser les risques et d'obtenir des retours opérationnels rapides.

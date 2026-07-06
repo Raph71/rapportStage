@@ -1,0 +1,43 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.maf
+*.mtc
+*.mtc*
+*.out
+*.ptc
+*.run.xml
+*.synctex.gz
+*.toc
+*.xdv
+
+# latexmk and glossaries/intermediate outputs
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+
+# Generated archives / temporary build dirs
+build/
+deploy.zip
+
+# Editor / OS noise
+.DS_Store
+*.swp
+*.swo
+
+# Pdf
+*.pdf

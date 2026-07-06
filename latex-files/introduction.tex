@@ -2,8 +2,22 @@
 \markleft{Introduction}
 \addcontentsline{toc}{chapter}{Introduction}
 
-\epigraph{La physique, elle, distingue le temps du devenir, le cours du temps de la flèche du temps : le cours du temps désigne le fait que "le temps passe", qu'en passant il produit de la durée et seulement de la durée, bref qu'il engendre la simple succession des événements; la flèche du temps renvoie quant à elle à la possibilité qu'ont les choses de "devenir", c'est-à-dire de connaître au cours du temps des changements ou des transformations parfois irréversibles.}{Étienne Klein}
+Ce rapport présente les travaux menés durant mon stage chez Winamax, au sein de l'équipe infrastructure, autour de
+l'amélioration du système d'alerting. Dans un environnement de production fortement sollicité, la capacité à détecter
+rapidement les incidents et à mobiliser les bonnes personnes constitue un enjeu opérationnel majeur.
 
-\blindtext[2]
+Le point de départ du sujet est un constat concret : le système d'alertes existant produit un volume important de
+notifications, dont une partie reste peu pertinente pour l'astreinte. De nombreuses alertes sont fondées sur des
+métriques techniques de causes (par exemple CPU ou mémoire) plutôt que sur des symptômes directement corrélés à un
+impact utilisateur. Cette situation augmente la charge cognitive des équipes et peut retarder l'identification du
+service réellement en difficulté.
 
-\blindtext
+L'objectif du stage est donc de faire évoluer cette approche vers un modèle de criticité plus lisible et plus
+actionnable, permettant de prioriser les interventions selon l'impact réel des incidents. Au-delà du paramétrage
+technique, le sujet implique une démarche de conception, de gouvernance et de validation continue de la qualité des
+alertes.
+
+Le rapport est structuré en quatre parties. La première présente le contexte d'entreprise et les contraintes
+opérationnelles. La deuxième analyse l'architecture actuelle de la chaîne d'alerting ainsi que ses limites. La
+troisième décrit la conception du modèle de criticité ciblé. Enfin, la quatrième aborde la mise en oeuvre progressive,
+les critères de validation et les perspectives d'amélioration.
