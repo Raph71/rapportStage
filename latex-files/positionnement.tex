@@ -1,0 +1,51 @@
+\chapter{Positionnement}
+
+\section{Winamax et ses concurrents}
+
+Sur le marché français du poker en ligne, Winamax est le leader avec plus
+de 69\% du marché mais reste derrière son principal concurrent, Pokerstar, sur les
+marchés des autres pays. Par rapport au marché des paris sportifs, Winamax détient
+29\% et ses principaux concurrents sont Unibet, Betclic ou Parions Sport de la FDJ.
+Winamax a pour ambition d’étendre ses activités de poker et de paris sportifs en
+ligne dans d’autres pays européens et particulièrement en Europe du sud et de
+l’est. Ainsi, depuis 2018, Winamax lance son site dans de nouveaux pays tels que
+l’Espagne, l’Allemagne ou le Portugal.
+
+\section{L’équipe Infrastructure à Winamax}
+
+L’équipe Infrastructure est une équipe essentielle de Winamax qui, pour
+rappel, est un site de jeux en ligne. C’est elle qui va, en accord avec le directeur
+technique (CTO), décider et mettre en oeuvre l’orientation globale de l’entreprise
+en matière de choix technologiques telle que la migration sur AWS décidée en 2018.
+La philosophie actuelle de Winamax est d’utiliser le plus possible les outils fournis
+et gérés par AWS afin de se focaliser sur les développements des différents produits.
+De plus, l’équipe effectue le plus possible d’Infrastructure as Code (IaC) notamment
+grâce à CloudFormation, Terraform et Puppet.
+L’équipe Infrastructure de Winamax est responsable à la fois de la mise
+à disposition des différents environnements, de l’accompagnement des différentes
+équipes dans le déploiement de leurs services ainsi que de la maintenance de ces
+derniers.
+L’équipe est responsable de plusieurs points critiques et communs aux équipes
+sur AWS :
+\begin{itemize}
+\item Provisionnement des machines nécessaires aux équipes (ECS EC2/Fargate,
+EC2, ECS Anywhere, machines en datacenter)
+\item Adressage des différentes machines et conteneurs
+\item Filtrage des flux réseaux entre les services
+\item Gestion de l’API Gateway : Kong
+\item Déploiement des outils communs aux équipes : Grafana, AutoScaler, Redmine
+\item Gestion de la stack d’observabilité
+\item Gestion de Github et des outils de CI/CD.
+\item Gestion des différents datastore pour les équipes (Cluster Mysql, Redis, Kafka).
+\end{itemize}
+
+Enfin, l’équipe supervise la distribution des alertes aux différentes équipes
+d’astreintes et est également d’astreinte afin de pouvoir intervenir en cas de problème
+sur la plateforme.
+
+La concurrence très rude dans le domaine du poker et du pari sportif ainsi
+que la volonté de se développer dans de nouveaux pays obligent Winamax à innover
+constamment avec de nouvelles fonctionnalités comme l’Expresso pour le poker ou
+MyMatch pour les pari sportifs. Ce développement ne peut se faire qu’avec l’aide de
+l’équipe Infrastructure qui fournit les différents environnements et aide les équipes
+à déployer leurs services dans ces environnements.

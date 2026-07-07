@@ -2,35 +2,74 @@
 
 \section{Histoire et données clés}
 
-Winamax est un acteur français du numérique, spécialisé dans les plateformes de paris en ligne et de poker.
-L'entreprise opère des services à forte disponibilité, avec des contraintes importantes de continuité de service,
-de performance et de fiabilité.
+Winamax est une entreprise basée à Paris spécialisée dans le poker et les
+paris sportifs en ligne. Créée à l’origine au Royaume-Uni et ayant une licence de jeu
+dans ce pays, la société Winamax a été rachetée en 2005 par les directeurs actuels
+M. Alexandre ROOS et M. Christophe SCHAMING.
 
-Le stage s'inscrit dans ce contexte d'exploitation 24/7, au sein d'une organisation où la qualité du monitoring et
-de l'alerting a un impact direct sur la capacité des équipes à détecter puis résoudre rapidement les incidents.
+En 2010, suite à l’adoption de la loi sur la régulation de l’industrie des jeux
+de hasard en ligne, Winamax est homologuée en France pour les Jeux de cercle par
+l’autorité de régulation des jeux en ligne (ARJEL) devenue l’autorité Nationale des
+jeux (ANJ) depuis 2020. Le poker est le seul jeu de cercle autorisé en ligne.
 
-Les données chiffrées non confirmées (effectifs, volumes exacts, répartition d'équipes) ne sont pas détaillées dans
-ce rapport à ce stade et seront complétées ultérieurement si nécessaire.
+En 2014, avant la coupe du monde de football, Winamax lance son site de
+paris sportifs en France puis, en 2018 le site de poker est ouvert en Espagne. Enfin,
+plus récemment, la partie paris sportifs a ouvert en Allemagne.
 
-\section{Activité}
+Winamax a un effectif de 500 personnes dont X travaillant sur la partie
+technique du site. Le pôle technique est ensuite subdivisé en différentes équipes:
 
-L'activité de Winamax repose sur des services applicatifs interconnectés, déployés dans une infrastructure cloud.
-Ces services doivent rester disponibles en continu, notamment pendant les périodes de forte charge.
-
-Dans ce cadre, l'astreinte technique joue un rôle central. Elle doit pouvoir distinguer rapidement :
 \begin{itemize}
-	\item les incidents réellement bloquants pour les utilisateurs,
-	\item les signaux faibles ou anomalies ne nécessitant pas d'intervention immédiate.
+	\item l’équipe Client Poker qui développe et maintient le client de jeu poker sur les différentes plateformes supportées.
+	\item l’équipe Back-end Poker qui s’occupe du moteur de jeu du poker et des transactions s’effectuant sur la plateforme.
+	\item l’équipe Back-office Poker gère les interactions entre le backend poker et l’opérateur ainsi que la mise à disposition d’une plateforme permettant aux équipes non techniques de Winamax d’interagir avec le backend pour créer des tournois par exemple.
+	\item l’équipe Betting développe et maintient la plateforme de paris sportifs.
+	\item l’équipe Betting Maths développe les différents algorithmes liés au calcul des cotes en temps réel.
+	\item l’équipe Opérateur maintient le site web Winamax et s’occupe du stockage des comptes joueurs.
+	\item l’équipe Core gère les différents outils communs aux équipes et s’occupe de mettre en place les services demandés par les différents régulateurs de chaque pays.
+	\item l’équipe Sécurité accompagne les autres équipes dans leurs projets et audite la plate forme régulièrement vis-à-vis des exigences des différents organismes de contrôle.
+	\item l’équipe Infra s’occupe de la mise en place et de la maintenance des différents services de la plateforme, de l’architecture et de l'optimisation des coûts. C’est dans cette équipe que j’ai effectué mon stage.
 \end{itemize}
 
-Le sujet de stage répond précisément à cet enjeu, en visant une amélioration du système d'alerting pour réduire le
-bruit opérationnel et mieux prioriser les interventions.
 
-\section{Rayonnement international}
 
-L'entreprise s'adresse à une base d'utilisateurs large et active, ce qui impose une exigence élevée de robustesse
-des systèmes techniques et de réactivité des équipes d'exploitation.
+\section{Contexte technologique à Winamax}
 
-Même sans détailler ici les marchés ou chiffres d'audience, ce contexte justifie l'importance d'un alerting orienté
-impact utilisateur : une dégradation non détectée ou mal priorisée peut rapidement se traduire par des conséquences
-fonctionnelles visibles à grande échelle.
+Historiquement, l’ensemble des technologies développées par Winamax étaient
+déployées sur des serveurs sur site (on-premise). En 2018 et jusqu’en 2022, l’ensemble
+de la plateforme a été migrée sur AWS (Amazon Web Services), le cloud opéré par
+Amazon. Quelques serveurs restent encore dans des datacenters parisiens, hébergeant des services liés à la régulation que la loi nous empêche de migrer sur le cloud.
+L’organisation AWS Winamax dispose de différents comptes AWS pour
+chaque environnement ou fonctionnalité :
+\begin{itemize}
+	\item Production
+	\item Prelive
+	\item Développement
+	\item PCIDSS-prod
+	\item PCIDSS-dev
+	\item Tools
+	\item Network
+	\item Keys
+	\item IT
+	\item Stacksets
+	\item Users
+	\item \ldots
+\end{itemize}
+
+L’ensemble des droits IAM sur les différents comptes AWS sont gérés par
+l’équipe Sécurité.
+L’accès aux différents environnements se fait via des VPNs se basant sur
+le protocole OpenVPN. Les outils de collaboration et de développement sont les
+suivants :
+
+\begin{itemize}
+	\item Google Workspace, pour toutes les applications de bureautique et mails
+	\item Redmine, pour la gestion des tickets
+	\item Slack, pour la communication entre les collaborateurs
+	\item Github, pour l’hébergement du code source
+\end{itemize}
+
+\section{Objectifs du stage}
+
+L'objectif de mon stage était d'améliorer le système d'alerting de Winamax afin de passer d'alarmes peu contextualisées à un modèle basé sur plusieurs niveaux de criticité, orienté vers le service réellement impacté.
+
