@@ -1,0 +1,135 @@
+\chapter{Présentation de l'entreprise}
+
+\section{Histoire et données clés}
+
+Winamax est une entreprise française basée à Paris, spécialisée dans le poker et les paris sportifs en
+ligne. La société trouve son origine dans un site britannique disposant d'une licence de jeu au
+Royaume-Uni, racheté en 2005 par Alexandre Roos, rejoint par Christophe Schaming. Les deux
+dirigeants, toujours à la tête de l'entreprise, repositionnent alors la marque autour du poker en ligne
+et anticipent de plusieurs années l'ouverture du marché français.
+
+En 2010, à la suite de l'adoption de la loi relative à l'ouverture à la concurrence et à la régulation du
+secteur des jeux d'argent et de hasard en ligne, Winamax est homologuée en France pour les jeux de
+cercle par l'Autorité de régulation des jeux en ligne (ARJEL), devenue l'Autorité nationale des jeux
+(ANJ) depuis 2020. Le poker demeure à ce jour le seul jeu de cercle autorisé en ligne en France. En
+2014, à l'approche de la Coupe du monde de football, Winamax lance son offre de paris sportifs.
+L'entreprise poursuit ensuite son développement à l'international : ouverture du poker en Espagne en
+2018, puis lancement plus récent des paris sportifs en Allemagne.
+
+Aujourd'hui, Winamax revendique une communauté de plus de dix millions de joueurs répartis en
+France, en Espagne et en Allemagne, et plus de deux millions de joueurs actifs. Sur le plan financier,
+l'entreprise fait partie des acteurs majeurs du secteur, avec un chiffre d'affaires de plusieurs centaines
+de millions d'euros. L'effectif de l'entreprise est de l'ordre de plusieurs centaines de collaborateurs,
+dont une part importante travaille sur la partie technique de la plateforme.
+
+\section{Positionnement et concurrence}
+
+Sur le marché français du poker en ligne, Winamax occupe une position de leader avec environ la
+moitié des parts de marché, portée par la plus forte liquidité du marché — plusieurs milliers de joueurs
+simultanés aux heures de pointe. Cette liquidité constitue un avantage concurrentiel déterminant :
+plus les joueurs sont nombreux, plus l'offre de tables et de tournois est riche, ce qui renforce à son
+tour l'attractivité de la plateforme. Le principal concurrent historique sur le poker reste PokerStars,
+davantage implanté sur les marchés internationaux.
+
+Sur le marché des paris sportifs, Winamax s'est hissé en tête des opérateurs français à la suite de l'Euro
+de football et détient plus d'un tiers du marché. Ses principaux concurrents sont Betclic, Unibet et
+Parions Sport (FDJ). La qualité des cotes proposées, régulièrement distinguée, participe de ce
+positionnement. Winamax poursuit par ailleurs une stratégie d'expansion européenne, avec une
+position déjà dominante sur le poker en Espagne et une progression sur le marché allemand des paris
+sportifs.
+
+Cette concurrence intense, conjuguée à la volonté de conquérir de nouveaux pays, impose à Winamax
+d'innover en permanence, avec des fonctionnalités emblématiques comme l'Expresso au poker ou
+MyMatch pour les paris sportifs. Ce rythme d'innovation repose directement sur la capacité de
+l'équipe Infrastructure à fournir des environnements fiables et à accompagner les équipes produit
+dans le déploiement de leurs services.
+
+\section{Organisation du pôle technique}
+
+Le pôle technique de Winamax est organisé en équipes spécialisées, chacune responsable d'un
+périmètre fonctionnel précis de la plateforme :
+
+\begin{itemize}
+	\item \textbf{Client Poker} : développe et maintient le client de jeu de poker sur les différentes plateformes supportées.
+	\item \textbf{Back-end Poker} : gère le moteur de jeu du poker et les transactions réalisées sur la plateforme.
+	\item \textbf{Back-office Poker} : assure les interactions entre le back-end poker et l'opérateur, et met à disposition des équipes non techniques une plateforme pour, par exemple, créer des tournois.
+	\item \textbf{Betting} : développe et maintient la plateforme de paris sportifs.
+	\item \textbf{Betting Maths} : conçoit les algorithmes de calcul des cotes en temps réel.
+	\item \textbf{Opérateur} : maintient le site web Winamax et gère le stockage des comptes joueurs.
+	\item \textbf{Core} : gère les outils communs aux équipes et met en place les services exigés par les régulateurs de chaque pays.
+	\item \textbf{Sécurité} : accompagne les équipes dans leurs projets et audite régulièrement la plateforme au regard des exigences des organismes de contrôle.
+\end{itemize}
+
+Cette organisation en équipes autonomes, chacune propriétaire de ses services, structure fortement
+la problématique de l'alerting : lorsqu'un incident survient, il faut pouvoir notifier précisément l'équipe
+responsable du service réellement impacté, et non diffuser une alerte générique et peu
+contextualisée.
+
+\section{L'équipe Infrastructure}
+
+L'équipe Infrastructure est une équipe transverse et essentielle de Winamax. En lien avec le directeur
+technique (CTO), elle décide et met en œuvre l'orientation globale de l'entreprise en matière de choix
+technologiques, comme la migration vers AWS décidée en 2018. Sa philosophie consiste à s'appuyer
+au maximum sur les services gérés fournis par AWS, afin que les équipes puissent se concentrer sur le
+développement de leurs produits, et à généraliser l'Infrastructure as Code (IaC), notamment via
+CloudFormation, Terraform et Puppet.
+
+L'équipe est responsable à la fois de la mise à disposition des différents environnements, de
+l'accompagnement des équipes dans le déploiement de leurs services et de la maintenance de ces
+derniers. Elle prend notamment en charge plusieurs points critiques et communs à toutes les
+équipes :
+
+\begin{itemize}
+	\item Provisionnement des machines nécessaires aux équipes (ECS sur EC2 ou Fargate, EC2, ECS Anywhere, machines en datacenter) ;
+	\item Adressage des différentes machines et conteneurs, et filtrage des flux réseau entre les services ;
+	\item Gestion de l'API Gateway (Kong) ;
+	\item Déploiement des outils communs : Grafana, AutoScaler, Redmine ;
+	\item Gestion de la stack d'observabilité ;
+	\item Gestion de GitHub et des outils de CI/CD ;
+	\item Gestion des datastores pour les équipes (clusters MySQL, Redis, Kafka).
+\end{itemize}
+
+Enfin, l'équipe supervise la distribution des alertes vers les différentes équipes d'astreinte et assure
+elle-même une astreinte, afin de pouvoir intervenir en cas de problème sur la plateforme. C'est
+précisément dans ce périmètre que s'inscrit le sujet de mon stage : améliorer la chaîne qui relie la
+détection d'un incident à la notification de la bonne personne.
+
+\section{Contexte technologique}
+
+Historiquement, l'ensemble des technologies de Winamax était déployé sur des serveurs sur site (on-
+premise). Entre 2018 et 2022, la plateforme a été majoritairement migrée vers Amazon Web Services
+(AWS). Quelques serveurs demeurent toutefois dans des datacenters parisiens, hébergeant des
+services liés à la régulation que la loi interdit de migrer vers le cloud. L'organisation AWS de Winamax
+est découpée en de multiples comptes, un pour chaque environnement ou fonctionnalité : Production,
+Prelive, Développement, PCIDSS-prod, PCIDSS-dev, Tools, Network, Keys, IT, Stacksets, Users, entre
+autres.
+
+L'ensemble des droits IAM sur ces comptes est géré par l'équipe Sécurité, et l'accès aux
+environnements se fait via des VPN reposant sur le protocole OpenVPN. Côté collaboration et
+développement, les équipes s'appuient sur Google Workspace pour la bureautique et la messagerie,
+Redmine pour la gestion des tickets, Slack pour la communication interne et GitHub pour
+l'hébergement du code source. Slack joue un rôle central dans la problématique d'alerting, puisqu'il
+constitue le principal canal de notification des équipes.
+
+Sur le plan de l'observabilité, la plateforme combine plusieurs briques : Amazon CloudWatch pour les
+métriques et les logs d'infrastructure, Amazon Managed Service for Prometheus (AMP) pour les
+métriques applicatives collectées par des collecteurs OpenTelemetry, et Grafana pour la visualisation.
+C'est sur cet écosystème riche mais hétérogène que repose le système d'alerting, objet de ce rapport.
+
+\section{Enjeux de conformité et de disponibilité}
+
+L'activité de Winamax est soumise à une régulation stricte : l'agrément délivré par l'ANJ impose des
+obligations fortes en matière de traçabilité des opérations de jeu, de protection des joueurs et de
+sécurité des données, notamment financières. C'est cette contrainte réglementaire qui explique le
+maintien de certains serveurs en datacenter, hors du cloud public, ainsi que l'existence de comptes
+AWS dédiés et cloisonnés à la norme de sécurité des données de l'industrie des cartes de paiement
+(PCIDSS-prod, PCIDSS-dev), séparés du reste de l'infrastructure.
+
+Au-delà de la conformité réglementaire, Winamax opère une plateforme sollicitée en continu par des
+millions de joueurs, avec des pics d'activité marqués lors des grands événements sportifs. La
+disponibilité du service est donc un enjeu direct pour l'entreprise : la moindre indisponibilité se traduit
+immédiatement par une dégradation de l'expérience utilisateur, une perte de revenus et un risque de
+réputation. C'est dans ce contexte d'exigence réglementaire et opérationnelle que s'inscrit le rôle de
+l'équipe Infrastructure, et plus particulièrement la nécessité de disposer d'un système d'alerting fiable,
+capable de détecter rapidement tout incident susceptible d'affecter la disponibilité ou la conformité
+de la plateforme.

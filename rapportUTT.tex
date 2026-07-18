@@ -23,10 +23,10 @@
 \REntre{{\sc FIDEL} Nicolas} % Responsable entreprise
 
 % Mots clés du Thésaurus ou mots clés pour les metadatas du pdf
-\Kone{Système d'alerting} % Nature de l'activité
+\Kone{Système d'alerting et observabilité} % Nature de l'activité
 \Ktwo{Criticité des alarmes} % Branche d'activité économique
-\Kthree{Observabilité} % Domaines technologiques
-\Kfourth{Cloud AWS } % Application Physique directe
+\Kthree{ObservabilitéInfrastructure as Code} % Domaines technologiques
+\Kfourth{Cloud AWS, Prometheus, Alertmanager} % Application Physique directe
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \Semestre{Printemps 2026}
@@ -38,21 +38,16 @@
 
 \newcommand{\titletext}{
 
-    Ce stage s'est déroulé dans l'entreprise Winamax, au sein de l'équipe infrastructure. Il a consisté à améliorer
-    le système d'alerting afin de passer d'alarmes peu contextualisées à un modèle basé sur plusieurs niveaux de
-    criticité, orienté vers le service réellement impacté.
-
-    Les différentes phases de travail successivement réalisées sont :
-
-    \begin{itemize}
-        \item Étudier l'existant et dresser une cartographie des alarmes de la plateforme
-        \item Définir des niveaux de criticité pertinents pour l'astreinte
-        \item Concevoir une stratégie d'alerting centrée sur les symptômes des incidents
-        \item Préparer l'évolution technique autour des composants ECS, EventBridge, CloudWatch et Lambda
-    \end{itemize}
-
-    L'enjeu est de réduire la fatigue liée aux alertes, d'améliorer la visibilité opérationnelle de la plateforme
-    et de permettre une résolution proactive des incidents, avant notification par les utilisateurs.
+Ce stage de fin d'études s'est déroulé au sein de l'équipe Infrastructure de Winamax, leader français
+du poker et des paris sportifs en ligne. Il a porté sur la refonte du système d'alerting de la plateforme,
+dont les alarmes, historiquement fondées sur des causes techniques telles que le CPU ou la mémoire,
+généraient un bruit important et une fatigue d'astreinte. J'ai d'abord cartographié les alarmes
+existantes et diagnostiqué les limites de la chaîne actuelle. J'ai ensuite conçu un modèle centré sur les
+symptômes, appuyé sur les méthodes RED et USE, quatre niveaux de criticité (P1 à P4) et une matrice
+de routage multi-canaux. J'ai développé la solution en Infrastructure as Code avec Terraform, Amazon
+Managed Prometheus et Alertmanager, en intégrant runbooks, watchdog et mode dégradé. Cette
+refonte vise à ne solliciter l'astreinte que pour des incidents réellement critiques, à réduire le MTTR
+et à traiter les problèmes avant leur perception par les utilisateurs.
 }
 
 
@@ -128,19 +123,6 @@
 
     \clearpage
 
-    {
-        % Tableaux et figures
-        \phantomsection
-
-        \listoftables
-        \addcontentsline{toc}{chapter}{\listtablename}
-
-        \listoffigures
-        \addcontentsline{toc}{chapter}{\listfigurename}
-
-        \markleft{Tableaux et figures}
-    }
-
     % \setglossarystyle{listhypergroup}
     % \printglossary[type=\acronymtype, title={Liste des acronymes}, toctitle={Liste des acronymes}]
     % \printglossary[title={Glossaire}, toctitle={Glossaire}]
@@ -153,10 +135,14 @@
 
     \clearpage
 
-    \import{latex-files/}{presentation.tex}
-    \import{latex-files/}{one.tex}
-    \import{latex-files/}{two.tex}
-    \import{latex-files/}{three.tex}
+    \import{latex-files/}{presentation_entreprise.tex}
+    \import{latex-files/}{presentation_stage.tex}
+    \import{latex-files/}{analyse_systeme_actuel.tex}
+    \import{latex-files/}{conception_nouvelle_solution.tex}
+    \import{latex-files/}{mise_en_oeuvre_technique.tex}
+    \import{latex-files/}{experience_transverse.tex}
+    \import{latex-files/}{bilan_et_perspectives.tex}
+    
 
     \clearpage
 

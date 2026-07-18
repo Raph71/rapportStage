@@ -1,33 +1,65 @@
 \chapter{Présentation du stage}
 
-\section{Sujet de stage}
+\section{Sujet et problématique}
 
-Le sujet de stage proposé par Winamax et écrit dans la convention est le suivant:
+Le sujet de stage, tel que formulé dans la convention, part du constat que la plateforme de jeu génère
+de nombreuses alertes permettant aux personnes d'astreinte de réagir lors d'incidents, mais que ce
+système souffre d'un manque d'unité et de pertinence. La problématique retenue est la suivante :
 
 \begin{quote}
-
-Chez Winamax, la plateforme de jeu génère de nombreuses alertes, permettant aux personnes d'astreinte de réagir rapidement
-lors d'incidents. Problématique Comment améliorer le système d'alerte, composé de plusieurs composants, afin d'offrir une solution unifiée,
-moderne et modulable pour notifier efficacement les développeurs lors des incidents ? Objectifs du stage Moderniser et centraliser la stack d'alerting :
-ingestion unifiée d'alertes multiples (AWS Cloudwatch, webhooks, Eventbridge…), dédoublonnage, normalisation, hiérarchisation par priorité, réduction de
-la latence et du bruit, routage conditionnel, notifications multi-canaux, boucles d'escalade, historique et analytique.
-
+	\emph{« Comment améliorer le système d'alerte, composé de plusieurs composants, afin d'offrir une
+	solution unifiée, moderne et modulable pour notifier efficacement les développeurs lors des
+	incidents ? »}
 \end{quote}
 
-Compétences : RT - Mise en œuvre - Planification RT - Mise en œuvre - Développement RT - Mise en œuvre - Documentation RT - Mise en œuvre – Evaluation
-RT - Exploitation - Administration RT - Exploitation - Gestion dysfonctionnement RT - Exploitation - Suivi
+Les objectifs du sujet couvrent la modernisation et la centralisation de la stack d'alerting : ingestion
+unifiée d'alertes de sources multiples (AWS CloudWatch, webhooks, EventBridge), dédoublonnage,
+normalisation, hiérarchisation par priorité, réduction de la latence et du bruit, routage conditionnel,
+notifications multi-canaux, boucles d'escalade, historisation et analytique. Ce périmètre large mêle
+des enjeux de conception, de développement, d'exploitation et de gouvernance.
 
 \section{Motivation}
 
-Le sujet m’intéressait particulièrement, car j’ai toujours voulu travailler sur
-des problématiques liées à l’observabilité.
-Le fait que le projet ait pour but d’aider les développeurs au quotidien me
-plaisait beaucoup.
-Étant très attiré par le domaine de l’infrastructure et du DevOps, avoir l’opportunité de découvrir ce secteur au sein d’une entreprise dotée d’une infrastructure
-de grande envergure représentait une véritable opportunité pour moi.
+Ce sujet m'intéressait particulièrement car j'ai toujours souhaité travailler sur des problématiques
+liées à l'observabilité. L'idée de contribuer à un outil qui aide concrètement les développeurs et les
+équipes d'astreinte au quotidien me plaisait beaucoup : il ne s'agit pas d'un projet abstrait, mais d'un
+système dont l'amélioration se mesure directement en nuits de sommeil préservées et en incidents
+résolus plus vite. Très attiré par le domaine de l'infrastructure et du DevOps, l'opportunité de
+découvrir ce secteur au sein d'une entreprise dotée d'une infrastructure cloud de grande envergure
+représentait pour moi une expérience formatrice de premier plan.
 
 \section{Objectifs du stage}
 
-L’objectif de mon stage était d’améliorer le système d’alerting de Winamax afin de passer
-d’alarmes peu contextualisées à un modèle basé sur plusieurs niveaux de criticité, orienté vers le
-service réellement impacté.
+L'objectif central de mon stage était d'améliorer le système d'alerting de Winamax afin de passer
+d'alarmes peu contextualisées à un modèle fondé sur plusieurs niveaux de criticité, orienté vers le
+service réellement impacté. Cet objectif se décline en plusieurs sous-objectifs :
+
+\begin{itemize}
+	\item Étudier l'existant et dresser une cartographie exhaustive des alarmes de la plateforme ;
+	\item Définir des niveaux de criticité pertinents pour l'astreinte ;
+	\item Concevoir une stratégie d'alerting centrée sur les symptômes des incidents plutôt que sur leurs causes ;
+	\item Développer la solution en Infrastructure as Code et préparer son intégration technique autour des composants ECS, EventBridge, CloudWatch, AMP, Lambda et Alertmanager ;
+	\item Réduire la fatigue liée aux alertes, améliorer la visibilité opérationnelle et permettre une résolution proactive des incidents.
+\end{itemize}
+
+Le stage a également mobilisé un ensemble de compétences du référentiel Réseaux et
+Télécommunications, en particulier la planification, le développement, la documentation et
+l'évaluation en phase de mise en œuvre, ainsi que l'administration, la gestion des dysfonctionnements
+et le suivi en phase d'exploitation.
+
+\section{Méthodologie et organisation du travail}
+
+La conduite du projet a suivi une démarche itérative, adaptée à un environnement de production où
+toute modification comporte un risque. J'ai commencé par une phase d'immersion et d'étude :
+compréhension de l'architecture d'alerting existante, lecture du code des fonctions Lambda,
+entretiens informels avec les membres de l'équipe et cartographie des alarmes réellement en place.
+Cette phase a débouché sur un diagnostic partagé des forces et des faiblesses du système.
+
+J'ai ensuite mené une phase de conception, formalisée dans une spécification technique, où j'ai
+proposé un modèle d'observabilité (RED et USE), une échelle de criticité et une architecture cible.
+Cette spécification a servi de support de discussion avec l'équipe et le maître de stage avant de passer
+à la réalisation. La phase de développement a été conduite en Infrastructure as Code, avec des
+livraisons progressives validées par revue de code (Pull Requests). Enfin, une stratégie de transition et
+de validation a été définie pour déployer la solution sans rupture de service. Le travail s'est appuyé au
+quotidien sur les outils de l'entreprise : GitHub pour le code et les revues, Slack pour la communication,
+Redmine pour le suivi des tâches et Grafana pour l'observation des métriques.

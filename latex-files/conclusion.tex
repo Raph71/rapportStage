@@ -2,21 +2,22 @@
 \markleft{Conclusion et perspectives}
 \addcontentsline{toc}{chapter}{Conclusion et perspectives}
 
-Ce stage a permis de traiter un enjeu central d'exploitation : améliorer la pertinence de l'alerting pour renforcer la
-réactivité opérationnelle et réduire la fatigue d'astreinte. L'analyse de l'existant a montré que la chaîne technique
-en place, bien qu'automatisée, générait un bruit significatif en raison d'alertes souvent orientées causes plutôt que
-symptômes.
+Ce stage a permis de traiter un enjeu central d'exploitation : améliorer la pertinence de l'alerting pour
+renforcer la réactivité opérationnelle et réduire la fatigue d'astreinte. L'analyse de l'existant a montré
+que la chaîne technique en place, bien qu'automatisée, générait un bruit significatif du fait d'alertes
+orientées causes plutôt que symptômes, sans niveau de criticité ni ownership clair par service.
 
-Le travail réalisé a conduit à formaliser une trajectoire d'amélioration fondée sur des niveaux de criticité,
-l'association explicite des alertes aux services impactés et une logique de notification plus ciblée. Cette approche
-vise à rendre chaque alerte plus lisible, plus priorisable et plus actionnable pour les équipes en charge de la
-production.
+À partir de ce diagnostic, j'ai conçu et développé une nouvelle solution fondée sur des principes solides
+: alerter sur les symptômes grâce aux méthodes RED et USE, hiérarchiser les alertes selon quatre
+niveaux de criticité, router intelligemment les notifications selon le service, la priorité et
+l'environnement, et associer chaque alerte à un runbook. La mise en œuvre en Infrastructure as Code,
+avec Terraform, AMP et Alertmanager, complétée par un watchdog, un mode dégradé et une gestion
+automatisée du cycle de vie des alertes, dote Winamax d'un système d'alerting moderne, modulable
+et maintenable.
 
-Au-delà des aspects techniques, le sujet met en évidence l'importance d'une gouvernance durable de l'alerting :
-conventions communes, suivi d'indicateurs de qualité, réévaluation régulière des seuils et capitalisation sur les
-retours d'incident.
-
-Les perspectives principales concernent l'affinage des niveaux de criticité selon les services, l'intégration plus
-forte avec les runbooks d'exploitation et l'industrialisation du pilotage de la qualité des alertes. À terme,
-l'ambition est de disposer d'un système d'alerting fiable et évolutif, réellement aligné avec l'impact utilisateur et
-les besoins des équipes d'astreinte.
+Au-delà des aspects techniques, ce sujet met en évidence l'importance d'une gouvernance durable de
+l'alerting : conventions communes, suivi d'indicateurs de qualité, réévaluation régulière des seuils et
+capitalisation sur les retours d'incident. Enrichi par l'expérience transverse du fast, ce stage a été pour
+moi une immersion complète et formatrice dans le métier de l'ingénierie d'infrastructure. À terme,
+l'ambition est de disposer d'un système d'alerting fiable et évolutif, réellement aligné avec l'impact
+utilisateur et les besoins des équipes d'astreinte.

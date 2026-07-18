@@ -1,0 +1,62 @@
+\chapter{Bilan, validation et perspectives}
+
+\section{Stratégie de validation et indicateurs de suivi}
+
+La validation d'une évolution d'alerting ne se limite pas à la réussite technique du déploiement : elle
+doit mesurer la pertinence opérationnelle du système obtenu. J'ai donc défini un ensemble
+d'indicateurs à suivre dans la durée :
+
+\begin{itemize}
+	\item le volume d'alertes par niveau de criticité ;
+	\item le ratio entre alertes actionnables et alertes non pertinentes ;
+	\item le temps moyen de détection (MTTD) et de réparation (MTTR) ;
+	\item le ressenti des équipes d'astreinte, en particulier leur niveau de fatigue et leur confiance dans les alertes.
+\end{itemize}
+
+Ces métriques permettent d'ajuster continûment les seuils et la classification, dans une logique
+d'amélioration continue.
+
+\section{Gains attendus de la solution}
+
+La solution conçue apporte des bénéfices à plusieurs niveaux :
+
+\begin{itemize}
+	\item \textbf{Gestion des astreintes et réactivité} : réduction de la fatigue d'alerte — seules les alertes urgentes ou critiques réveillent la personne d'astreinte —, amélioration des temps de détection et de réparation en identifiant directement le service problématique, et fin des interventions inutiles.
+	\item \textbf{Infrastructure et développement} : visibilité précise sur la plateforme, aidant les développeurs à savoir exactement quels services nécessitent une intervention.
+	\item \textbf{Expérience utilisateur et entreprise} : amélioration de la disponibilité de l'application grâce à une résolution plus rapide des incidents, ce qui contribue à la réputation de Winamax, à la diminution des plaintes utilisateurs et donc à son attractivité.
+\end{itemize}
+
+\section{Limites}
+
+Le travail réalisé constitue une base méthodologique et technique solide, mais plusieurs limites
+doivent être soulignées. La liste des métriques d'application, aujourd'hui centrée sur trois indicateurs
+clés, est vouée à évoluer et à s'affiner service par service. La gestion des alertes personnalisées n'est
+pas encore prise en charge par le module Terraform. Le calcul de l'Error Rate par méthode, envisagé,
+reste délicat car les seuils diffèrent selon les méthodes et pourraient réintroduire du bruit. Enfin, la
+pleine réussite de la solution dépend d'une gouvernance rigoureuse : sans réévaluation régulière des
+seuils et sans discipline collective, un système d'alerting tend naturellement à se dégrader et à
+redevenir bruyant.
+
+\section{Perspectives}
+
+Plusieurs axes d'évolution se dégagent :
+
+\begin{itemize}
+	\item affiner la granularité des niveaux de criticité selon les services et étendre la surveillance aux composants backend (workers, Kafka, Redis), avec par exemple des alertes sur le consumer lag ;
+	\item renforcer l'intégration avec les runbooks et les dashboards Grafana, pour un diagnostic toujours plus rapide ;
+	\item automatiser le cycle de vie des alertes via Backstage, afin de garantir une cohérence durable entre les services déployés et leur configuration d'alerting ;
+	\item industrialiser le suivi de la qualité des alertes — tableaux de bord d'indicateurs, revues régulières — afin de pérenniser les gains obtenus.
+\end{itemize}
+
+\section{Bilan personnel}
+
+Sur le plan personnel, ce stage a été une expérience extrêmement enrichissante. Il m'a permis de
+découvrir de l'intérieur le fonctionnement d'une équipe Infrastructure au sein d'une entreprise à forte
+culture technique, et de contribuer à un projet à réel impact opérationnel. J'ai consolidé mes
+compétences en cloud AWS, en Infrastructure as Code (Terraform), en observabilité (Prometheus,
+CloudWatch, Grafana) et en ingénierie de fiabilité (méthodes RED et USE, notions de MTTD, MTTR,
+watchdog). Au-delà de la technique, j'ai appris à conduire un projet dans un environnement de
+production exigeant, à documenter et défendre mes choix de conception, et à collaborer avec des
+équipes aux besoins variés. Cette expérience a confirmé mon intérêt profond pour le domaine de
+l'infrastructure et du DevOps, et m'a donné une vision concrète du métier vers lequel je souhaite
+m'orienter.

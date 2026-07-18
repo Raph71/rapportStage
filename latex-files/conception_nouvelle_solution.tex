@@ -1,0 +1,237 @@
+\chapter{Conception de la nouvelle solution}
+
+\section{Principe directeur : alerter sur les symptômes}
+
+La conception proposée repose sur un principe simple mais structurant : une alerte doit représenter
+un risque opérationnel clair, compréhensible et actionnable. La personne d'astreinte alertée doit
+immédiatement savoir quel service pose problème et quel est l'impact pour l'utilisateur, sans avoir à
+corréler manuellement une dizaine de métriques techniques. Pour atteindre cet objectif, quatre règles
+de conception ont été retenues :
+
+\begin{itemize}
+	\item privilégier les signaux liés aux symptômes de panne plutôt qu'aux seules causes techniques ;
+	\item expliciter le niveau de criticité de chaque alerte ;
+	\item associer chaque alerte à un périmètre de responsabilité identifié (service, équipe) ;
+	\item standardiser la structure des notifications pour accélérer le diagnostic initial.
+\end{itemize}
+
+\section{ Deux points de vue complémentaires : les méthodes RED et USE}
+
+Pour structurer la surveillance, j'ai retenu deux méthodes reconnues de l'ingénierie de fiabilité (SRE),
+en les appliquant à des types de métriques distincts. La méthode USE s'applique aux métriques
+d'infrastructure et adopte une vue « côté machine », tandis que la méthode RED s'applique aux
+métriques d'application et adopte une vue « côté client ».
+
+\subsection{La méthode USE (vue côté machine)}
+
+La méthode USE évalue la santé des composants sous-jacents à travers trois dimensions :
+
+\begin{itemize}
+	\item \textbf{Utilization} (Utilisation) : le pourcentage de temps pendant lequel une ressource est occupée (par exemple CPU ou RAM à 80 \%).
+	\item \textbf{Saturation} : la quantité de travail en attente que la ressource ne peut traiter immédiatement (par exemple la longueur d'une file d'attente).
+	\item \textbf{Errors} (Erreurs) : le nombre d'erreurs matérielles ou système survenues (par exemple UnHealthyHostCount).
+\end{itemize}
+
+L'objectif de la méthode USE est d'identifier les goulots d'étranglement matériels avant qu'ils ne
+fassent tomber le service. Elle répond à la question « pourquoi » du point de vue de la machine.
+
+\subsection{La méthode RED (vue côté client)}
+
+La méthode RED se concentre sur les requêtes applicatives, au plus près de l'expérience utilisateur, à
+travers trois dimensions :
+
+\begin{itemize}
+	\item \textbf{Rate} (Débit) : le nombre de requêtes par seconde reçues par le service.
+	\item \textbf{Errors} (Erreurs) : le nombre de requêtes qui échouent (par exemple un statut JSON-RPC différent de 200).
+	\item \textbf{Duration} (Durée) : le temps nécessaire pour traiter les requêtes, c'est-à-dire la latence.
+\end{itemize}
+
+L'objectif de la méthode RED est de mesurer directement la qualité de l'expérience utilisateur et la
+santé des microservices. Elle répond à la question « y a-t-il un problème » du point de vue du client.
+
+En résumé, le RED nous dit qu'il y a un problème pour l'utilisateur, tandis que le USE nous aide à
+comprendre pourquoi du point de vue de la machine. C'est la combinaison de ces deux vues qui
+permet à la fois d'alerter au bon moment et de diagnostiquer rapidement.
+
+\section{Des métriques d'application au cœur de l'alerting}
+
+Actuellement, le système d'alerte repose presque exclusivement sur les métriques d'infrastructure
+collectées via CloudWatch — par exemple une alarme du type \texttt{CPUUtilization > 80 \%} pendant 5
+minutes. L'ambition de la nouvelle solution est d'exploiter en priorité les métriques d'application
+exposées par Prometheus, notamment celles définies dans le middleware JSON-RPC. Ces métriques
+sont déjà collectées par les collecteurs OpenTelemetry déployés sur les clusters applicatifs et stockées
+dans AMP (Amazon Managed Service for Prometheus), mais elles n'étaient jusqu'ici pas utilisées pour
+l'alerting.
+
+J'ai donc défini trois métriques clés à mettre en place sur l'ensemble des API, ou du moins les plus
+critiques :
+
+\begin{itemize}
+	\item \textbf{Latency P99} : le temps de latence pour le 1 \% des requêtes les plus lentes, révélateur d'une dégradation ressentie par les utilisateurs.
+	\item \textbf{Error Rate} : le ratio de requêtes échouées sur les requêtes totales, à partir du statut JSON-RPC de chaque service.
+	\item \textbf{Service Down} : la vérification que le nombre de requêtes d'un service ne descend pas sous un certain seuil, en s'appuyant sur le nombre de requêtes du target group dans CloudWatch.
+\end{itemize}
+
+Ces trois métriques permettent de créer des alertes bien plus représentatives de ce que vit
+l'utilisateur. La priorité est d'abord donnée aux API, reflet le plus direct de l'expérience utilisateur.
+Dans un second temps, la surveillance sera étendue aux services backend (workers, Kafka, Redis...),
+essentiels à la cohérence et à la performance dans la durée. Par exemple, une alerte sur le consumer
+lag de Kafka — l'écart entre le dernier message produit et le dernier message consommé —
+permettrait d'identifier rapidement la cause d'une latence d'API ressentie côté utilisateur. En résumé,
+les alertes sur les API signalent un problème pour l'utilisateur, tandis que les alertes backend
+permettent d'en diagnostiquer rapidement l'origine.
+
+En complément des métriques, la solution conserve des alertes basées sur les logs, à l'aide d'une
+métrique comptabilisant le nombre de logs d'erreur. Afin de réduire le bruit, un niveau de sévérité
+différent est attribué selon le nombre d'erreurs détectées sur une fenêtre de cinq minutes : quelques
+erreurs isolées relèvent de l'information, tandis qu'un afflux massif traduit un incident.
+
+\section{Les niveaux de criticité}
+
+Afin de ne solliciter les équipes d'astreinte qu'en cas d'incident réellement critique, un niveau de
+criticité est attribué à chaque alerte, sous forme de tags ou de labels sur les règles Prometheus. Quatre
+niveaux ont été définis.
+
+\begin{table}[h]
+	\centering
+	\caption{Niveaux de criticité de la nouvelle solution d'alerting}
+	\label{tab:niveaux-criticite}
+	\begin{tabular}{|p{0.15\textwidth}|p{0.45\textwidth}|p{0.3\textwidth}|}
+		\hline
+		\textbf{Niveau} & \textbf{Définition} & \textbf{Exemples} \\
+		\hline
+		P1 -- Critical & Erreur critique ayant un impact direct et important sur l'utilisateur ; doit être résolue le plus rapidement possible. & L'utilisateur ne peut plus déposer d'argent ; plus aucun accès à un service. \\
+		\hline
+		P2 -- High & Problème important dégradant l'expérience ; le service reste utilisable mais l'astreinte doit être alertée. & Plus de 2 s d'attente avant de jouer au poker ; page de betting chargée en 5 s. \\
+		\hline
+		P3 -- Warning & Approche de la saturation d'un composant ; pas de réveil de l'astreinte. Une P3 peut devenir P2 si elle dure. & Utilisation CPU > 80 \% ; RAM > 80 \%. \\
+		\hline
+		P4 -- Info & Information sur l'état du système, à des fins d'observabilité. & Suivi de l'utilisation des CPU, de la RAM, etc. \\
+		\hline
+	\end{tabular}
+\end{table}
+
+Cette hiérarchisation est essentielle : elle établit un langage commun entre les équipes et fonde toute
+la logique de routage décrite ci-après. Elle traduit également un changement de culture, en assumant
+que toutes les anomalies ne se valent pas et que certaines n'ont pas vocation à interrompre une
+astreinte.
+
+\section{Stratégie de notification et matrice de routage}
+
+Le choix du canal de notification dépend à la fois de la priorité de l'alerte et de l'environnement
+concerné. L'objectif est de réveiller une personne uniquement lorsque cela est justifié, et de router
+les autres alertes vers des canaux consultables sans urgence.
+
+\begin{table}[h]
+	\centering
+	\caption{Matrice de routage des alertes selon la priorité et l'environnement}
+	\label{tab:matrice-routage}
+	\begin{tabular}{|p{0.2\textwidth}|p{0.25\textwidth}|p{0.45\textwidth}|}
+		\hline
+		\textbf{Priorité} & \textbf{Environnement} & \textbf{Canal principal} \\
+		\hline
+		P1 -- Critical & PROD & SMS + Slack (\texttt{\#alerts-\$\{TEAM\}-infra-\$\{ENV\}}) \\
+		\hline
+		P2 -- High & PROD & SMS + Slack (\texttt{\#alerts-\$\{TEAM\}-infra-\$\{ENV\}}) \\
+		\hline
+		P3 -- Warning & PROD & Slack (\texttt{\#alerts-\$\{TEAM\}-infra-\$\{ENV\}}) \\
+		\hline
+		Toutes & DEV / PRELIVE & Slack (\texttt{\#\$\{TEAM\}-infra-\$\{ENV\}}) \\
+		\hline
+		Logs & Tous & Slack (\texttt{\#\$\{TEAM\}-infra-logs-\$\{ENV\}}) \\
+		\hline
+	\end{tabular}
+\end{table}
+
+En environnement de staging, même une alerte P1 ne doit pas déranger l'astreinte : un simple
+message est envoyé sur le canal Slack dédié à l'équipe concernée. En revanche, pour les alertes P1 et
+P2 en production, il est impératif de réveiller la personne d'astreinte, en plus de l'envoi du message
+sur le canal de l'équipe impactée. Chaque équipe dispose ainsi de ses propres canaux, ce qui garantit
+que l'alerte parvient bien à la personne experte du service en cause.
+
+\section{Corrélation RED / USE et runbooks}
+
+Afin d'améliorer le temps moyen de réparation (MTTR), les alertes de criticité « Critical » ou « High »
+de type RED (symptômes) sont associées aux alertes de type « Warning » de type USE (causes
+possibles) du même service. Cette corrélation facilite le diagnostic pour la personne d'astreinte : plutôt
+que de recevoir une alerte isolée, elle dispose immédiatement des pistes de cause. Par exemple, si le
+service \texttt{betting-api} signale un dépassement du seuil de latence P99 pendant plus de cinq minutes (le
+symptôme), l'alerte intègre les warnings susceptibles d'en être la cause, comme un ralentissement
+dans la lecture d'une base de données.
+
+Chaque alerte est en outre associée à un runbook comprenant un lien direct vers le dashboard Grafana
+du service concerné. Ce tableau de bord offre une visualisation détaillée permettant d'identifier
+rapidement la ou les méthodes problématiques de l'API. Le runbook constitue ainsi un point d'entrée
+unique pour comprendre l'alerte et engager la résolution, sans perte de temps en recherche
+d'informations.
+
+\section{Conventions de nommage et tags}
+
+Pour garantir la traçabilité et distinguer clairement les nouvelles alertes des anciennes, une
+convention de nommage homogène a été définie sous la forme :
+
+\begin{center}
+	\texttt{alerts/\$\{Family\}/\$\{Team\}/\$\{Service\}/\$\{AlarmName\}}
+\end{center}
+
+Chaque alerte porte par ailleurs un
+ensemble de tags normalisés — Team, Service, Family, Environment, Accountid, GitHub (chemin du
+code Terraform), Version et Severity — qui permettent le routage, le filtrage et l'audit des alertes.
+Cette gouvernance du nommage et des tags est déterminante pour éviter, à terme, le retour à un
+système trop bruyant ou incohérent.
+
+\section{Deux stratégies de gestion des alertes}
+
+Deux stratégies ont été envisagées pour organiser la création et la maintenance des alertes, chacune
+avec ses avantages et ses contraintes.
+
+\subsection{Stratégie 1 -- Gestion centralisée chez l'infrastructure}
+
+Dans cette approche, l'équipe Infrastructure définit et centralise les alertes génériques de la
+plateforme dans un code Terraform. Les métriques d'infrastructure (CPU, mémoire...) sont créées
+dans CloudWatch, tandis que les métriques des API sont récupérées dans AMP via les collecteurs
+OpenTelemetry. Alertmanager regroupe les alertes et les route vers SNS. Le code Terraform produit
+des promrules, ces fichiers de configuration lus par Prometheus qui contiennent la logique décidant si
+une situation est critique. Une règle comporte typiquement une expression PromQL (\texttt{Expr}), une
+durée (\texttt{For}) et des labels de catégorisation. Prometheus détecte l'alerte, mais c'est Alertmanager qui
+prend en charge la logistique : dédoublonnage, silences pendant les maintenances et routage vers le
+bon canal. Les équipes de développement peuvent ajuster les seuils par défaut et activer ou
+désactiver les alertes de leur service via une Pull Request, à l'aide d'une map de configuration placée
+en tête de fichier.
+
+\subsection{Stratégie 2 -- Gestion déléguée aux développeurs}
+
+La seconde stratégie consiste à définir les alertes directement dans chaque équipe. Les équipes
+choisissent, parmi les alertes proposées par l'infrastructure, celles qu'elles souhaitent activer, et fixent
+leurs seuils. La vérification et le déploiement se font dans la CI/CD : un premier script valide le fichier
+\texttt{alerts.yaml}, puis un second le convertit en template CloudFormation qui crée les alertes dans
+CloudWatch ou AMP. L'équipe Infrastructure maintient le script générant le template avec les seuils
+par défaut, surchargés par \texttt{alerts.yaml}, et peut ajouter une alerte à tous en modifiant simplement
+son template de base.
+
+\subsection{Comparaison et choix retenu}
+
+\begin{table}[h]
+	\centering
+	\caption{Comparaison des deux stratégies de gestion des alertes}
+	\label{tab:comparaison-strategies}
+	\begin{tabular}{|p{0.22\textwidth}|p{0.37\textwidth}|p{0.31\textwidth}|}
+		\hline
+		\textbf{Critère} & \textbf{Gestion chez les développeurs} & \textbf{Gestion centralisée chez l'infra} \\
+		\hline
+		Difficulté pour les devs & Responsables de leur fichier \texttt{alerts.yaml} ; doivent suivre les nouvelles alertes de l'infra. & Modifient les seuils par défaut dans Terraform ; tout nouveau service hérite automatiquement des seuils par défaut. \\
+		\hline
+		Validation (linting) & Élevée : le script bloque un seuil aberrant avant déploiement. & Manuelle : validation par les membres de l'équipe infra. \\
+		\hline
+		Robustesse mise en production & Maximale : un YAML mal formé fait échouer le pipeline immédiatement. & Forte : une personne de l'infra doit valider les changements. \\
+		\hline
+		Maintenance infra & Élevée : collaboration nécessaire avec l'équipe tooling pour le pipeline de génération des templates ; maintenir le script de génération de template. & Modérée : développer le code Terraform et configurer Alertmanager ; légère une fois la règle posée, puis valider les PR des devs. \\
+		\hline
+	\end{tabular}
+\end{table}
+
+Au terme de cette analyse, la stratégie 1 (gestion centralisée chez l'infrastructure) a été retenue. Elle
+offre le meilleur compromis entre maîtrise, cohérence et coût de mise en production : l'infrastructure
+garde la main sur les alertes génériques et leur qualité, tout en laissant aux équipes la souplesse
+d'ajuster leurs seuils via de simples Pull Requests. C'est cette stratégie qui a structuré la phase de mise
+en œuvre.

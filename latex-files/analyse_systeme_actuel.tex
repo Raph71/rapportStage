@@ -1,0 +1,127 @@
+\chapter{Analyse du système d'alerting actuel}
+
+\section{Architecture actuelle de la chaîne d'alerting}
+
+L'architecture étudiée repose sur un ensemble de composants AWS permettant de créer, maintenir
+et diffuser des alarmes techniques autour des services déployés sur les clusters ECS. Le
+fonctionnement observé peut se résumer ainsi : les changements survenant sur les services (création,
+mise à jour, suppression) sont détectés via CloudTrail et EventBridge ; des fonctions Lambda
+orchestrent alors la création ou la suppression d'alarmes CloudWatch ; les alarmes déclenchées
+produisent des notifications qui, via un topic SNS puis une chaîne de traitement, aboutissent sur les
+canaux de diffusion, principalement Slack.
+
+\begin{figure}[h]
+	\centering
+	\fbox{%
+		\parbox{0.9\textwidth}{%
+			\textbf{Schéma de la chaîne actuelle d'alerting (à remplacer par la capture de l'architecture).}\\
+			ECS (services) $\rightarrow$ CloudTrail / EventBridge $\rightarrow$ Lambdas $\rightarrow$
+			CloudWatch (alarmes / métriques de log) $\rightarrow$ SNS $\rightarrow$ SQS $\rightarrow$
+			Lambda errors-to-slack $\rightarrow$ Slack.
+		}%
+	}
+	\caption{Vue d'ensemble de la chaîne actuelle de création et de diffusion des alarmes}
+	\label{fig:archi-alerting-actuelle}
+\end{figure}
+
+Cette chaîne automatise entièrement la gestion des alarmes, ce qui constitue un atout indéniable,
+mais elle génère aussi un niveau de complexité élevé, avec de nombreux points de configuration et un
+couplage fort entre services techniques. Surtout, les alertes ainsi produites ne sont pas toujours
+pertinentes pour les personnes d'astreinte.
+
+\section{Inventaire des composants existants}
+
+L'étude détaillée du système m'a conduit à recenser les principales fonctions Lambda qui composent
+la chaîne actuelle. Chacune joue un rôle précis, mais leur enchaînement rend le système difficile à
+appréhender dans son ensemble.
+
+\begin{table}[h]
+	\centering
+	\caption{Récapitulatif des composants Lambda de la chaîne d'alerting actuelle}
+	\label{tab:composants-lambda-actuels}
+	\begin{tabular}{|p{0.35\textwidth}|p{0.55\textwidth}|}
+		\hline
+		\textbf{Composant (Lambda)} & \textbf{Rôle} \\
+		\hline
+		cloudwatch-alarms-cpu-memory & Crée les alarmes liées à la consommation de CPU et de mémoire RAM des services. \\
+		\hline
+		target-group-cloudwatch-alarm & Gère automatiquement les alarmes CloudWatch pour les target groups des Application Load Balancers, en fonction de tags de ressources (codes 5XX, 4XX, UnHealthyHostCount...). \\
+		\hline
+		cloudwatch-log-groups-stream & Gère automatiquement les filtres d'abonnement CloudWatch Logs et les alarmes pour les groupes de logs ECS, Lambda et Batch, déclenchés par les mises à jour de ressources (événements CloudTrail). \\
+		\hline
+		cloudwatch-logs-errors-to-slack & Écoute les événements de logs applicatifs, détermine leur pertinence (niveau error), applique des filtres anti faux-positifs, dédoublonne, journalise les métriques au format EMF et publie les logs intéressants vers SNS puis une file SQS. \\
+		\hline
+		rules-cloudwatch-log-groups-stream & Consomme les messages de la file SQS, construit un message Slack et détermine le canal de destination (généralement selon l'équipe). \\
+		\hline
+	\end{tabular}
+\end{table}
+
+Le tag appliqué sur les target groups illustre bien la logique de configuration : chaque type d'alarme
+(par exemple \texttt{HTTPCode\_Target\_5XX\_Count} ou \texttt{UnHealthyHostCount}) dispose d'un tag
+d'activation booléen et d'un tag de seuil. Ce mécanisme, souple en apparence, présente en réalité de
+fortes limites lorsqu'il s'agit d'introduire de la criticité ou d'harmoniser les pratiques entre équipes.
+
+\section{Le problème de fond : alerter sur les causes plutôt que sur les symptômes}
+
+L'étude de l'existant met en évidence une limite majeure : une partie significative des alertes est
+construite autour de métriques de causes (CPU, mémoire, etc.) plutôt que de symptômes directement
+corrélés à un impact utilisateur. Concrètement, le système sait dire « la mémoire de ce conteneur est
+à 80 \% » mais pas « les utilisateurs ne peuvent plus déposer d'argent ». Or c'est bien la seconde
+information qui importe pour l'astreinte.
+
+Cette confusion entre causes et symptômes entraîne plusieurs effets néfastes :
+
+\begin{itemize}
+	\item des réveils d'astreinte pour des situations parfois non critiques ;
+	\item une fatigue liée au volume de notifications, qui finit par émousser la vigilance ;
+	\item une difficulté à identifier rapidement le service réellement en défaut.
+\end{itemize}
+
+Un pic de CPU, par exemple, peut être parfaitement normal lors d'un traitement batch et n'avoir aucun
+impact sur les joueurs. À l'inverse, une latence anormale sur une API critique peut passer inaperçue si
+aucune alarme ne la surveille. L'efficacité globale de la réponse à incident s'en trouve dégradée,
+malgré une instrumentation technique pourtant riche.
+
+\section{Avantages et limites de la solution existante}
+
+Pour objectiver le diagnostic, j'ai formalisé les avantages et les inconvénients du système en place.
+Cette analyse contradictoire a guidé les choix de conception de la nouvelle solution.
+
+\begin{table}[h]
+	\centering
+	\caption{Points forts et limites du système d'alerting actuel}
+	\label{tab:forces-limites-existant}
+	\begin{tabular}{|p{0.45\textwidth}|p{0.45\textwidth}|}
+		\hline
+		\textbf{Points forts} & \textbf{Limites} \\
+		\hline
+		Création automatique des alarmes, zéro intervention manuelle pour monitorer un nouveau service &
+		Perte de contrôle sur la création des alertes, aucune visibilité des équipes sur les alertes créées \\
+		\hline
+		Les développeurs se concentrent sur leur code &
+		Chaîne trop complexe : plusieurs Lambdas avant l'envoi sur Slack \\
+		\hline
+		Configuration par tags sans toucher à l'infrastructure &
+		Si une Lambda échoue, aucun retry : manque de visibilité \\
+		\hline
+		 & Beaucoup d'éléments hardcodés, code peu maintenable \\
+		\hline
+		 & Mêmes alertes et mêmes seuils pour tous les services \\
+		\hline
+		 & Impossible d'attribuer un niveau de criticité aux alertes \\
+		\hline
+		 & Un changement de seuil ou de nom impose de redéployer tous les services \\
+		\hline
+		 & Pas d'ownership des alertes par service \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\section{Synthèse du diagnostic}
+
+Le diagnostic de départ peut être résumé en trois points. Premièrement, l'infrastructure d'alerting est
+riche mais hétérogène et complexe à maintenir. Deuxièmement, la pertinence métier des alertes reste
+insuffisante dans de nombreux cas, faute d'une orientation symptôme. Troisièmement, la priorisation
+des interventions n'est pas explicite : rien ne distingue une alerte qui doit réveiller quelqu'un la nuit
+d'une simple information. Ce constat justifie la définition d'un cadre de criticité formalisé et d'une
+architecture repensée, présentés dans le chapitre suivant.

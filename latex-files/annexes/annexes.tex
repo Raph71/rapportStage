@@ -1,8 +1,146 @@
 \appendix
 \chapter{Annexes}
 
-\section{Captures d'écran}
+\section{Annexe A — Schémas d'architecture}
 
-\section{Formules chimiques}
+Cette annexe rassemble les schémas d'architecture du système d'alerting. Les représentations
+ci-dessous sont des synthèses textuelles des flux ; elles ont vocation à être remplacées par les captures
+issues des diagrammes de conception (architecture actuelle, stratégie 1 et stratégie 2).
 
-\section{Extraits de code source}
+\subsection*{A.1 Architecture actuelle}
+
+\begin{figure}[h]
+	\centering
+	\fbox{%
+		\parbox{0.9\textwidth}{%
+			Load Balancer $\rightarrow$ Target Group $\rightarrow$ ECS services\\
+			CloudTrail détecte les changements $\rightarrow$ EventBridge $\rightarrow$ Lambdas\\
+			Lambdas $\rightarrow$ CloudWatch (alarmes CPU/mémoire, alarmes target group, métriques de log EMF)\\
+			CloudWatch $\rightarrow$ SNS $\rightarrow$ SQS $\rightarrow$ Lambda errors-to-slack $\rightarrow$ Slack
+		}%
+	}
+	\caption{Chaîne actuelle de création et de diffusion des alarmes}
+	\label{fig:annexe-archi-actuelle}
+\end{figure}
+
+\subsection*{A.2 Architecture cible -- stratégie centralisée (retenue)}
+
+\begin{figure}[h]
+	\centering
+	\fbox{%
+		\parbox{0.9\textwidth}{%
+			Team infra : gestion des alertes en Terraform $\rightarrow$ création des PromRules\\
+			Otel collectors (port 3000) $\rightarrow$ AMP ; CloudWatch pour les métriques d'infra\\
+			AMP / CloudWatch $\rightarrow$ Alertmanager $\rightarrow$ SNS $\rightarrow$ SQS\\
+			Outil de routage $\rightarrow$ Slack / SMS / Appel / Push / Email
+		}%
+	}
+	\caption{Architecture cible : gestion centralisée des alertes chez l'infrastructure}
+	\label{fig:annexe-archi-cible-centralisee}
+\end{figure}
+
+\subsection*{A.3 Architecture cible -- stratégie déléguée aux développeurs}
+
+\begin{figure}[h]
+	\centering
+	\fbox{%
+		\parbox{0.9\textwidth}{%
+			Équipes : fichier alerts.yaml $\rightarrow$ push GitHub $\rightarrow$ CI/CD\\
+			CI/CD : vérification du YAML $\rightarrow$ génération PromRule / template CloudFormation\\
+			CloudFormation $\rightarrow$ CloudWatch / AMP $\rightarrow$ Alertmanager $\rightarrow$ routage
+		}%
+	}
+	\caption{Variante : gestion des alertes déléguée aux équipes de développement}
+	\label{fig:annexe-archi-cible-deleguee}
+\end{figure}
+
+\section{Annexe B — Tableaux de référence}
+
+\subsection*{B.1 Récapitulatif des composants Lambda existants}
+
+\begin{table}[h]
+	\centering
+	\caption{Composants Lambda de la chaîne d'alerting actuelle et leur fonction principale}
+	\label{tab:annexe-composants-lambda}
+	\begin{tabular}{|p{0.35\textwidth}|p{0.55\textwidth}|}
+		\hline
+		\textbf{Composant} & \textbf{Fonction principale} \\
+		\hline
+		cloudwatch-alarms-cpu-memory & Alarmes de consommation CPU / RAM. \\
+		\hline
+		target-group-cloudwatch-alarm & Alarmes des target groups ALB pilotées par tags (5XX, 4XX, UnHealthyHostCount). \\
+		\hline
+		cloudwatch-log-groups-stream & Gestion des filtres d'abonnement et alarmes des groupes de logs (ECS, Lambda, Batch). \\
+		\hline
+		cloudwatch-logs-errors-to-slack & Écoute, filtrage, dédoublonnage et publication des logs d'erreur (EMF, SNS, SQS). \\
+		\hline
+		rules-cloudwatch-log-groups-stream & Consommation SQS et envoi des messages sur le bon canal Slack. \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\subsection*{B.2 Tags appliqués aux nouvelles alertes}
+
+\begin{table}[h]
+	\centering
+	\caption{Tags normalisés appliqués aux alertes de la nouvelle solution}
+	\label{tab:annexe-tags}
+	\begin{tabular}{|p{0.25\textwidth}|p{0.6\textwidth}|}
+		\hline
+		\textbf{Tag} & \textbf{Valeur / description} \\
+		\hline
+		Team & \texttt{var.team} -- équipe propriétaire \\
+		\hline
+		Service & \texttt{each.key} -- service concerné \\
+		\hline
+		Family & \texttt{var.family} -- famille fonctionnelle \\
+		\hline
+		Environment & \texttt{var.environment} -- prod / dev / prelive \\
+		\hline
+		Accountid & \texttt{var.accountId} -- compte AWS \\
+		\hline
+		GitHub & \texttt{terraform/shared/shared-alarms/\$\{var.team\}} \\
+		\hline
+		Version & v2 \\
+		\hline
+		Severity & \texttt{var.severity} -- niveau de criticité \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\subsection*{B.3 Convention de nommage des alertes}
+
+\begin{center}
+	\texttt{alerts/\$\{Family\}/\$\{Team\}/\$\{Service\}/\$\{AlarmName\}}
+\end{center}
+
+\section{Annexe C — Glossaire}
+
+\begin{table}[h]
+	\centering
+	\caption{Glossaire des termes et acronymes utilisés dans ce rapport}
+	\label{tab:annexe-glossaire}
+	\begin{tabular}{|p{0.2\textwidth}|p{0.65\textwidth}|}
+		\hline
+		\textbf{Terme} & \textbf{Définition} \\
+		\hline
+		AMP & Amazon Managed Service for Prometheus -- service géré de stockage des métriques Prometheus. \\
+		\hline
+		Alertmanager & Composant de l'écosystème Prometheus gérant dédoublonnage, silences et routage des alertes. \\
+		\hline
+		EMF & Embedded Metric Format -- format permettant de générer des métriques CloudWatch à partir de logs structurés. \\
+		\hline
+		IaC & Infrastructure as Code -- gestion de l'infrastructure via du code versionné (Terraform, CloudFormation...). \\
+		\hline
+		MTTD / MTTR & Mean Time To Detect / Mean Time To Repair -- temps moyens de détection et de réparation d'un incident. \\
+		\hline
+		Promrule & Fichier de configuration lu par Prometheus définissant une règle d'alerte (expression PromQL, durée, labels). \\
+		\hline
+		RED & Rate, Errors, Duration -- méthode d'observabilité orientée expérience utilisateur (métriques d'application). \\
+		\hline
+		USE & Utilization, Saturation, Errors -- méthode d'observabilité orientée ressources (métriques d'infrastructure). \\
+		\hline
+		Watchdog & Dead man's switch : alerte toujours active dont la disparition signale une panne de la chaîne d'alerting. \\
+		\hline
+	\end{tabular}
+\end{table}

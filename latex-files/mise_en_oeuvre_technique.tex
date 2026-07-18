@@ -1,0 +1,155 @@
+\chapter{Mise en œuvre de la solution}
+
+\section{Architecture cible}
+
+La solution retenue s'appuie sur une chaîne d'alerting unifiée et pilotée par le code. Les métriques
+d'infrastructure sont surveillées via CloudWatch, les métriques d'application via AMP et les collecteurs
+OpenTelemetry. Les règles d'alerte, décrites en Terraform, génèrent des promrules Prometheus.
+Alertmanager regroupe et route les alertes vers un topic SNS, qui alimente une file SQS. Un outil de
+routage se connecte à cette file pour appliquer la logique métier de notification. L'ensemble reste
+indépendant de l'outil de routage final, ce qui préserve la modularité de la solution.
+
+\begin{figure}[h]
+	\centering
+	\fbox{%
+		\parbox{0.9\textwidth}{%
+			\textbf{Schéma de l'architecture cible (à remplacer par la capture de la stratégie retenue).}\\
+			GitHub (Terraform) $\rightarrow$ promrules $\rightarrow$ AMP / CloudWatch $\rightarrow$
+			Alertmanager $\rightarrow$ SNS $\rightarrow$ SQS $\rightarrow$ Outil de routage $\rightarrow$
+			Slack / SMS / Appel / Push / Email.
+		}%
+	}
+	\caption{Architecture cible de la chaîne d'alerting}
+	\label{fig:archi-alerting-cible}
+\end{figure}
+
+\section{Le module Terraform et les fichiers de configuration}
+
+Conformément à la stratégie centralisée, j'ai développé un module Terraform dédié à la gestion des
+alertes génériques CloudWatch et AMP. Les développeurs disposent de deux leviers : modifier les
+seuils par défaut en ajustant les valeurs dans le fichier \texttt{.tfvars} spécifique à l'environnement, et
+choisir d'appliquer ou non une alerte à leur service. L'arborescence du dossier
+\texttt{shared/shared-alarms} attribue à chaque équipe un dossier contenant trois fichiers \texttt{.tfvars}, un par
+environnement (production, développement, prelive).
+
+\begin{figure}[h]
+	\centering
+	\fbox{%
+		\begin{minipage}{0.9\textwidth}
+			\ttfamily\raggedright
+			environment = "dev"\\[0.5em]
+			services = \{\\
+			\ \ "cloudwatch-alarms-api" = \{\\
+			\ \ \ \ cluster\ \ \ \ \ = "clu-infra-staging"\\
+			\ \ \ \ cpu\ \ \ \ \ \ \ \ \ = \{ threshold = 78 \}\\
+			\ \ \ \ memory\ \ \ \ \ = \{ threshold = 90 \}\\
+			\ \ \ \ latency\_p99 = \{ threshold = 2 \}\\
+			\ \ \}\\
+			\}
+		\end{minipage}%
+	}
+	\caption{Structure d'un fichier \texttt{.tfvars} permettant à une équipe de surcharger les seuils par défaut}
+	\label{fig:extrait-tfvars}
+\end{figure}
+
+Une fois leurs modifications réalisées, les développeurs soumettent une Pull Request, ce qui déclenche
+le processus de CI/CD appliquant les changements. La gestion des alertes personnalisées n'est pas
+encore prise en charge par le module ; les développeurs conservent toutefois la possibilité de créer ce
+type d'alerte directement dans leur fichier CloudFormation.
+
+\section{La chaîne de routage des notifications}
+
+Une fois les alertes générées par Alertmanager et CloudWatch, elles sont transmises à SNS puis à une
+file SQS. L'outil de routage se connecte à cette file pour appliquer une logique métier complète :
+
+\begin{itemize}
+	\item regrouper les alertes par nom de service afin d'éviter la submersion ;
+	\item alerter les bonnes personnes grâce à un routage intelligent fondé sur le service impacté, la criticité et l'environnement ;
+	\item gérer le silencing pour désactiver temporairement les alertes pendant les maintenances ;
+	\item appliquer l'inhibition afin de ne pas alerter sur des ressources dépendant d'un service déjà tombé ;
+	\item formater la notification avec des explications détaillées et des liens vers les outils de diagnostic.
+\end{itemize}
+
+Cette étape est décisive : c'est elle qui transforme un signal technique brut en une notification claire
+et exploitable.
+
+\section{Surveiller le système d'alerting : le watchdog}
+
+Un système d'alerting n'a de valeur que si l'on peut lui faire confiance. Il faut donc s'assurer que la
+chaîne fonctionne en permanence. Pour cela, un mécanisme de watchdog (dead man's switch) a été
+prévu : il s'agit d'une alerte qui doit toujours être en état firing. Si elle disparaît, c'est que la chaîne
+d'alerting est cassée — Prometheus ne collecte plus, Alertmanager ne reçoit plus rien, ou le receiver
+est en panne. L'outil d'astreinte est configuré pour recevoir un heartbeat du watchdog ; si ce
+battement cesse pendant plus de cinq minutes, l'outil alerte automatiquement. On protège ainsi le
+système contre le pire scénario : celui où plus aucune alerte ne remonte, sans que personne ne s'en
+aperçoive.
+
+\section{Fonctionnement en mode dégradé}
+
+Aujourd'hui, l'indisponibilité d'une source du système d'alerte n'entraîne aucune notification : on
+opère dans l'incertitude et l'on risque de ne prendre conscience de l'absence d'alertes qu'après un
+délai indéterminé. Pour y remédier, un mécanisme de secours (fallback) prend le relais en cas de
+défaillance de l'outil de routage principal. Cette gestion du fallback est déléguée à un prestataire tiers
+(SaaS), ce qui présente deux avantages : ne plus gérer nous-mêmes les prestataires externes d'envoi
+de notifications, et multiplier les moyens de notification au-delà du seul SMS (appel téléphonique,
+notification push sur application mobile, e-mail, SMS).
+
+Par exemple, si le système ne parvient pas à contacter le prestataire SMS, il bascule sur AWS SNS : le
+recours au prestataire SaaS crée ainsi un niveau de fallback supplémentaire et intégré. Les prestataires
+externes utilisent en outre un mécanisme de type heartbeat qui leur permet de tester en retour
+l'ensemble des sources (SNS, Alertmanager, Prometheus, CloudWatch...) : c'est l'outil de routage qui
+vérifie l'état de ces services, offrant une supervision bidirectionnelle dont nous ne disposons pas
+actuellement.
+
+\section{Gestion du cycle de vie des alertes}
+
+Pour rester fiable, le système exige que les alertes créées via Terraform correspondent précisément
+aux services réellement déployés. Cela implique deux automatismes : lorsqu'un service est retiré, ses
+alertes doivent être automatiquement supprimées de la configuration Terraform ; lorsqu'un service
+est ajouté, il doit y être automatiquement intégré pour que ses alertes soient créées. Deux approches
+ont été étudiées pour y parvenir : utiliser EventBridge afin de détecter l'ajout ou la suppression de
+services dans les clusters et déclencher la création automatique d'une Pull Request de mise à jour du
+code Terraform, ou bien se baser sur GitHub comme source de vérité en surveillant les évolutions de
+services.
+
+À plus long terme, la solution la plus prometteuse consiste à s'appuyer sur le catalogue Backstage
+comme source unique de vérité. Backstage permettrait d'identifier les services déployés par chaque
+équipe et de cartographier leurs dépendances — par exemple, si le service A dépend de la base de
+données du service B, seule une alerte sur B est générée en cas de défaillance de cette base. Le cycle
+de vie envisagé est le suivant : détection d'un ajout ou d'une suppression dans le catalogue,
+interrogation périodique de l'API Backstage par une GitHub Action, comparaison avec les
+fichiers \texttt{.tfvars}, génération automatique d'une Pull Request (ajout ou retrait du service), puis validation
+par l'équipe Infrastructure et application par Terraform. Ce mécanisme garantirait une cohérence
+durable entre l'état réel de la plateforme et sa configuration d'alerting.
+
+\section{Stratégie de transition}
+
+La mise en œuvre d'un nouveau modèle d'alerting en production impose une approche incrémentale,
+afin de limiter les risques de régression et de faciliter l'appropriation par les équipes. Trois phases ont
+été définies :
+
+\begin{itemize}
+	\item \textbf{Phase 1 -- Déploiement de la fondation technique} : mise en place de l'infrastructure et du code nécessaires à l'implémentation complète de la solution.
+	\item \textbf{Phase 2 -- Coexistence et pilotage (double-run)} : l'ancien système n'est pas immédiatement désactivé ; la nouvelle solution s'exécute en parallèle sur le service d'une équipe pilote, ce qui permet de comparer les alertes émises par les deux systèmes et d'accompagner les développeurs dans l'ajustement des seuils.
+	\item \textbf{Phase 3 -- Déclassement de l'ancien système} : une fois la fiabilité de la nouvelle solution démontrée, les alertes de l'ancienne solution sont mises en sourdine, sa visualisation est maintenue temporairement pour observation, avant sa désactivation définitive par la suppression des anciennes Lambdas.
+\end{itemize}
+
+Cette trajectoire prudente instaure une confiance progressive dans la nouvelle solution et évite tout
+angle mort pendant la bascule.
+
+\section{Ownership et responsabilisation des équipes}
+
+Au-delà de l'aspect purement technique, la solution a été conçue pour corriger l'une des limites
+majeures du système existant : l'absence d'ownership des alertes par service. Chaque alerte porte
+désormais un tag \texttt{Team} et un tag \texttt{Service} qui l'associent sans ambiguïté à l'équipe responsable, et
+le routage s'appuie directement sur ces tags pour diriger la notification vers le canal Slack dédié à
+cette équipe plutôt que vers un canal générique.
+
+Cette responsabilisation se traduit concrètement par le mécanisme de Pull Request : les équipes ne
+subissent plus une configuration imposée et opaque, elles ajustent elles-mêmes, dans leur fichier
+\texttt{.tfvars}, les seuils et l'activation des alertes de leur propre service, sous la revue de l'équipe
+Infrastructure. Chaque alerte critique est en outre associée à un runbook et à un dashboard Grafana
+propres au service concerné, ce qui place l'équipe propriétaire en première ligne pour le diagnostic.
+Ce changement de modèle — passer d'une chaîne d'alertes anonymes à des alertes explicitement
+rattachées à une équipe et à un niveau de criticité — est une condition nécessaire pour que la
+gouvernance de l'alerting reste durable dans le temps.
