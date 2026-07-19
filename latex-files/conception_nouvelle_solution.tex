@@ -15,16 +15,16 @@ de conception ont été retenues :
 	\item standardiser la structure des notifications pour accélérer le diagnostic initial.
 \end{itemize}
 
-\section{ Deux points de vue complémentaires : les méthodes RED et USE}
+\section{Deux points de vue complémentaires : les méthodes RED et USE}
 
-Pour structurer la surveillance, j'ai retenu deux méthodes reconnues de l'ingénierie de fiabilité (SRE),
-en les appliquant à des types de métriques distincts. La méthode USE s'applique aux métriques
-d'infrastructure et adopte une vue « côté machine », tandis que la méthode RED s'applique aux
-métriques d'application et adopte une vue « côté client ».
+Pour structurer la surveillance, j'ai retenu deux méthodes reconnues de l'ingénierie de fiabilité
+(SRE) \cite{sre-google}, en les appliquant à des types de métriques distincts. La méthode USE
+s'applique aux métriques d'infrastructure et adopte une vue « côté machine », tandis que la méthode
+RED s'applique aux métriques d'application et adopte une vue « côté client ».
 
 \subsection{La méthode USE (vue côté machine)}
 
-La méthode USE évalue la santé des composants sous-jacents à travers trois dimensions :
+La méthode USE \cite{gregg-use} évalue la santé des composants sous-jacents à travers trois dimensions :
 
 \begin{itemize}
 	\item \textbf{Utilization} (Utilisation) : le pourcentage de temps pendant lequel une ressource est occupée (par exemple CPU ou RAM à 80 \%).
@@ -37,8 +37,8 @@ fassent tomber le service. Elle répond à la question « pourquoi » du point d
 
 \subsection{La méthode RED (vue côté client)}
 
-La méthode RED se concentre sur les requêtes applicatives, au plus près de l'expérience utilisateur, à
-travers trois dimensions :
+La méthode RED \cite{wilkie-red} se concentre sur les requêtes applicatives, au plus près de
+l'expérience utilisateur, à travers trois dimensions :
 
 \begin{itemize}
 	\item \textbf{Rate} (Débit) : le nombre de requêtes par seconde reçues par le service.
@@ -187,27 +187,20 @@ avec ses avantages et ses contraintes.
 
 \subsection{Stratégie 1 -- Gestion centralisée chez l'infrastructure}
 
-Dans cette approche, l'équipe Infrastructure définit et centralise les alertes génériques de la
-plateforme dans un code Terraform. Les métriques d'infrastructure (CPU, mémoire...) sont créées
-dans CloudWatch, tandis que les métriques des API sont récupérées dans AMP via les collecteurs
-OpenTelemetry. Alertmanager regroupe les alertes et les route vers SNS. Le code Terraform produit
-des promrules, ces fichiers de configuration lus par Prometheus qui contiennent la logique décidant si
-une situation est critique. Une règle comporte typiquement une expression PromQL (\texttt{Expr}), une
-durée (\texttt{For}) et des labels de catégorisation. Prometheus détecte l'alerte, mais c'est Alertmanager qui
-prend en charge la logistique : dédoublonnage, silences pendant les maintenances et routage vers le
-bon canal. Les équipes de développement peuvent ajuster les seuils par défaut et activer ou
-désactiver les alertes de leur service via une Pull Request, à l'aide d'une map de configuration placée
-en tête de fichier.
+Dans cette approche, l'équipe Infrastructure définit et centralise les alertes génériques dans un code
+Terraform : les métriques d'infrastructure (CPU, mémoire...) sont créées dans CloudWatch, celles des
+API récupérées dans AMP via OpenTelemetry, et Alertmanager les route vers SNS. Le code Terraform
+produit des promrules — expression PromQL, durée et labels — que Prometheus évalue ; Alertmanager
+gère ensuite dédoublonnage, silences et routage. Les équipes ajustent les seuils par défaut et
+activent ou désactivent les alertes de leur service via une Pull Request.
 
 \subsection{Stratégie 2 -- Gestion déléguée aux développeurs}
 
 La seconde stratégie consiste à définir les alertes directement dans chaque équipe. Les équipes
-choisissent, parmi les alertes proposées par l'infrastructure, celles qu'elles souhaitent activer, et fixent
-leurs seuils. La vérification et le déploiement se font dans la CI/CD : un premier script valide le fichier
-\texttt{alerts.yaml}, puis un second le convertit en template CloudFormation qui crée les alertes dans
-CloudWatch ou AMP. L'équipe Infrastructure maintient le script générant le template avec les seuils
-par défaut, surchargés par \texttt{alerts.yaml}, et peut ajouter une alerte à tous en modifiant simplement
-son template de base.
+choisissent, parmi les alertes proposées par l'infrastructure, celles qu'elles souhaitent activer, et
+fixent leurs seuils. La vérification se fait dans la CI/CD : un premier script valide le fichier
+\texttt{alerts.yaml}, puis un second le convertit en template CloudFormation qui crée les alertes. L'équipe
+Infrastructure maintient ce script et peut ajouter une alerte à tous en modifiant son template de base.
 
 \subsection{Comparaison et choix retenu}
 

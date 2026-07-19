@@ -26,17 +26,14 @@ dont une part importante travaille sur la partie technique de la plateforme.
 
 Sur le marché français du poker en ligne, Winamax occupe une position de leader avec environ la
 moitié des parts de marché, portée par la plus forte liquidité du marché — plusieurs milliers de joueurs
-simultanés aux heures de pointe. Cette liquidité constitue un avantage concurrentiel déterminant :
-plus les joueurs sont nombreux, plus l'offre de tables et de tournois est riche, ce qui renforce à son
-tour l'attractivité de la plateforme. Le principal concurrent historique sur le poker reste PokerStars,
-davantage implanté sur les marchés internationaux.
+simultanés aux heures de pointe. Plus les joueurs sont nombreux, plus l'offre de tables et de tournois
+est riche, ce qui renforce l'attractivité de la plateforme. Le principal concurrent historique sur le
+poker reste PokerStars, davantage implanté sur les marchés internationaux.
 
 Sur le marché des paris sportifs, Winamax s'est hissé en tête des opérateurs français à la suite de l'Euro
-de football et détient plus d'un tiers du marché. Ses principaux concurrents sont Betclic, Unibet et
-Parions Sport (FDJ). La qualité des cotes proposées, régulièrement distinguée, participe de ce
-positionnement. Winamax poursuit par ailleurs une stratégie d'expansion européenne, avec une
-position déjà dominante sur le poker en Espagne et une progression sur le marché allemand des paris
-sportifs.
+de football et détient plus d'un tiers du marché, devant Betclic, Unibet et Parions Sport (FDJ). Winamax
+poursuit par ailleurs une stratégie d'expansion européenne, avec une position déjà dominante sur le
+poker en Espagne et une progression sur le marché allemand des paris sportifs.
 
 Cette concurrence intense, conjuguée à la volonté de conquérir de nouveaux pays, impose à Winamax
 d'innover en permanence, avec des fonctionnalités emblématiques comme l'Expresso au poker ou
@@ -61,18 +58,16 @@ périmètre fonctionnel précis de la plateforme :
 \end{itemize}
 
 Cette organisation en équipes autonomes, chacune propriétaire de ses services, structure fortement
-la problématique de l'alerting : lorsqu'un incident survient, il faut pouvoir notifier précisément l'équipe
-responsable du service réellement impacté, et non diffuser une alerte générique et peu
-contextualisée.
+la problématique de l'alerting : lorsqu'un incident survient, il faut notifier précisément l'équipe
+responsable du service réellement impacté, et non diffuser une alerte générique.
 
 \section{L'équipe Infrastructure}
 
-L'équipe Infrastructure est une équipe transverse et essentielle de Winamax. En lien avec le directeur
-technique (CTO), elle décide et met en œuvre l'orientation globale de l'entreprise en matière de choix
-technologiques, comme la migration vers AWS décidée en 2018. Sa philosophie consiste à s'appuyer
-au maximum sur les services gérés fournis par AWS, afin que les équipes puissent se concentrer sur le
-développement de leurs produits, et à généraliser l'Infrastructure as Code (IaC), notamment via
-CloudFormation, Terraform et Puppet.
+L'équipe Infrastructure est une équipe transverse et essentielle de Winamax. En lien avec le CTO, elle
+décide et met en œuvre l'orientation technologique de l'entreprise, comme la migration vers AWS
+décidée en 2018. Sa philosophie consiste à s'appuyer au maximum sur les services gérés fournis par
+AWS et à généraliser l'Infrastructure as Code (IaC), notamment via CloudFormation, Terraform et
+Puppet.
 
 L'équipe est responsable à la fois de la mise à disposition des différents environnements, de
 l'accompagnement des équipes dans le déploiement de leurs services et de la maintenance de ces
@@ -105,11 +100,10 @@ Prelive, Développement, PCIDSS-prod, PCIDSS-dev, Tools, Network, Keys, IT, Stac
 autres.
 
 L'ensemble des droits IAM sur ces comptes est géré par l'équipe Sécurité, et l'accès aux
-environnements se fait via des VPN reposant sur le protocole OpenVPN. Côté collaboration et
-développement, les équipes s'appuient sur Google Workspace pour la bureautique et la messagerie,
-Redmine pour la gestion des tickets, Slack pour la communication interne et GitHub pour
-l'hébergement du code source. Slack joue un rôle central dans la problématique d'alerting, puisqu'il
-constitue le principal canal de notification des équipes.
+environnements se fait via des VPN OpenVPN. Côté collaboration, les équipes s'appuient sur Google
+Workspace, Redmine pour les tickets, Slack pour la communication interne et GitHub pour le code
+source. Slack joue un rôle central dans la problématique d'alerting, puisqu'il constitue le principal
+canal de notification.
 
 Sur le plan de l'observabilité, la plateforme combine plusieurs briques : Amazon CloudWatch pour les
 métriques et les logs d'infrastructure, Amazon Managed Service for Prometheus (AMP) pour les
@@ -118,18 +112,15 @@ C'est sur cet écosystème riche mais hétérogène que repose le système d'ale
 
 \section{Enjeux de conformité et de disponibilité}
 
-L'activité de Winamax est soumise à une régulation stricte : l'agrément délivré par l'ANJ impose des
-obligations fortes en matière de traçabilité des opérations de jeu, de protection des joueurs et de
-sécurité des données, notamment financières. C'est cette contrainte réglementaire qui explique le
-maintien de certains serveurs en datacenter, hors du cloud public, ainsi que l'existence de comptes
-AWS dédiés et cloisonnés à la norme de sécurité des données de l'industrie des cartes de paiement
-(PCIDSS-prod, PCIDSS-dev), séparés du reste de l'infrastructure.
+L'activité de Winamax est soumise à une régulation stricte : l'agrément délivré par l'ANJ \cite{anj} impose des
+obligations fortes de traçabilité des opérations de jeu, de protection des joueurs et de sécurité des
+données financières. C'est cette contrainte réglementaire qui explique le maintien de certains
+serveurs en datacenter, hors du cloud public, ainsi que l'existence de comptes AWS dédiés et
+cloisonnés à la norme PCIDSS (PCIDSS-prod, PCIDSS-dev).
 
-Au-delà de la conformité réglementaire, Winamax opère une plateforme sollicitée en continu par des
-millions de joueurs, avec des pics d'activité marqués lors des grands événements sportifs. La
-disponibilité du service est donc un enjeu direct pour l'entreprise : la moindre indisponibilité se traduit
-immédiatement par une dégradation de l'expérience utilisateur, une perte de revenus et un risque de
-réputation. C'est dans ce contexte d'exigence réglementaire et opérationnelle que s'inscrit le rôle de
-l'équipe Infrastructure, et plus particulièrement la nécessité de disposer d'un système d'alerting fiable,
-capable de détecter rapidement tout incident susceptible d'affecter la disponibilité ou la conformité
-de la plateforme.
+Au-delà de la conformité, Winamax opère une plateforme sollicitée en continu par des millions de
+joueurs, avec des pics d'activité lors des grands événements sportifs : la moindre indisponibilité se
+traduit immédiatement par une dégradation de l'expérience utilisateur, une perte de revenus et un
+risque de réputation. C'est dans ce contexte d'exigence réglementaire et opérationnelle que s'inscrit
+le rôle de l'équipe Infrastructure, et la nécessité d'un système d'alerting fiable, capable de détecter
+rapidement tout incident affectant la disponibilité ou la conformité de la plateforme.

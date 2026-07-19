@@ -1,7 +1,7 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{rUTT} % pour dire quelle classe on fournit
 
-\LoadClass[a4paper,11pt]{report}
+\LoadClass[a4paper,12pt]{report}
 % Il serait intéressant de regarder ce package un jour : https://ctan.org/pkg/memoir
 
 \usepackage{emptypage}
@@ -22,8 +22,8 @@
 \usepackage[main=french,english]{babel}
 \usepackage{setspace} % Pour les interlignes
 
-\singlespacing
-% \onehalfspacing % interligne 1.5cm
+% \singlespacing
+\onehalfspacing % interligne 1.5 (recommandation UTT)
 \usepackage{indentfirst} % pour indenter en début de paragraphe suivant un début de section
 \setlength{\parindent}{1.27cm} % espace d'indentation recommandé par la norme APA
 \setlength{\parskip}{1em} % espacement entre les paragraphes
@@ -505,7 +505,7 @@ boxsep=4pt, left=0pt,right=0pt,top=0pt,bottom=0pt,colframe=white,colback=lightgr
   %includeheadfoot, % la zone de texte inclut le header et le footer
   headheight=8cm,
   headsep=0.5cm,
-  margin=2.54cm,
+  margin=2.5cm,
   footskip=1.25cm
 ]{geometry}   % Utilisé pour les marges
 

@@ -3,11 +3,12 @@
 \section{Architecture cible}
 
 La solution retenue s'appuie sur une chaîne d'alerting unifiée et pilotée par le code. Les métriques
-d'infrastructure sont surveillées via CloudWatch, les métriques d'application via AMP et les collecteurs
-OpenTelemetry. Les règles d'alerte, décrites en Terraform, génèrent des promrules Prometheus.
-Alertmanager regroupe et route les alertes vers un topic SNS, qui alimente une file SQS. Un outil de
-routage se connecte à cette file pour appliquer la logique métier de notification. L'ensemble reste
-indépendant de l'outil de routage final, ce qui préserve la modularité de la solution.
+d'infrastructure sont surveillées via CloudWatch, les métriques d'application via AMP \cite{aws-amp}
+et les collecteurs OpenTelemetry. Les règles d'alerte, décrites en Terraform \cite{terraform-docs},
+génèrent des promrules Prometheus \cite{prometheus-docs}. Alertmanager \cite{alertmanager-docs}
+regroupe et route les alertes vers un topic SNS, qui alimente une file SQS. Un outil de routage se
+connecte à cette file pour appliquer la logique métier de notification. L'ensemble reste indépendant
+de l'outil de routage final, ce qui préserve la modularité de la solution.
 
 \begin{figure}[h]
 	\centering
@@ -104,23 +105,18 @@ actuellement.
 \section{Gestion du cycle de vie des alertes}
 
 Pour rester fiable, le système exige que les alertes créées via Terraform correspondent précisément
-aux services réellement déployés. Cela implique deux automatismes : lorsqu'un service est retiré, ses
-alertes doivent être automatiquement supprimées de la configuration Terraform ; lorsqu'un service
-est ajouté, il doit y être automatiquement intégré pour que ses alertes soient créées. Deux approches
-ont été étudiées pour y parvenir : utiliser EventBridge afin de détecter l'ajout ou la suppression de
-services dans les clusters et déclencher la création automatique d'une Pull Request de mise à jour du
-code Terraform, ou bien se baser sur GitHub comme source de vérité en surveillant les évolutions de
-services.
+aux services réellement déployés : le retrait d'un service doit supprimer automatiquement ses
+alertes, et l'ajout d'un service doit les créer automatiquement. Deux approches ont été étudiées :
+utiliser EventBridge pour détecter ces évolutions dans les clusters et déclencher une Pull Request de
+mise à jour du code Terraform, ou bien se baser sur GitHub comme source de vérité.
 
 À plus long terme, la solution la plus prometteuse consiste à s'appuyer sur le catalogue Backstage
-comme source unique de vérité. Backstage permettrait d'identifier les services déployés par chaque
-équipe et de cartographier leurs dépendances — par exemple, si le service A dépend de la base de
-données du service B, seule une alerte sur B est générée en cas de défaillance de cette base. Le cycle
-de vie envisagé est le suivant : détection d'un ajout ou d'une suppression dans le catalogue,
+comme source unique de vérité, capable d'identifier les services déployés par chaque équipe et de
+cartographier leurs dépendances — par exemple, si le service A dépend de la base de données du
+service B, seule une alerte sur B est générée en cas de défaillance de cette base. Le cycle envisagé :
 interrogation périodique de l'API Backstage par une GitHub Action, comparaison avec les
-fichiers \texttt{.tfvars}, génération automatique d'une Pull Request (ajout ou retrait du service), puis validation
-par l'équipe Infrastructure et application par Terraform. Ce mécanisme garantirait une cohérence
-durable entre l'état réel de la plateforme et sa configuration d'alerting.
+fichiers \texttt{.tfvars}, génération automatique d'une Pull Request, puis validation par l'équipe
+Infrastructure et application par Terraform.
 
 \section{Stratégie de transition}
 
@@ -139,17 +135,14 @@ angle mort pendant la bascule.
 
 \section{Ownership et responsabilisation des équipes}
 
-Au-delà de l'aspect purement technique, la solution a été conçue pour corriger l'une des limites
-majeures du système existant : l'absence d'ownership des alertes par service. Chaque alerte porte
-désormais un tag \texttt{Team} et un tag \texttt{Service} qui l'associent sans ambiguïté à l'équipe responsable, et
-le routage s'appuie directement sur ces tags pour diriger la notification vers le canal Slack dédié à
-cette équipe plutôt que vers un canal générique.
+Au-delà de l'aspect technique, la solution corrige l'une des limites majeures du système existant :
+l'absence d'ownership des alertes par service. Chaque alerte porte désormais un tag \texttt{Team} et
+un tag \texttt{Service} qui l'associent sans ambiguïté à l'équipe responsable, et le routage s'appuie sur
+ces tags pour diriger la notification vers le canal Slack de cette équipe plutôt que vers un canal
+générique.
 
-Cette responsabilisation se traduit concrètement par le mécanisme de Pull Request : les équipes ne
-subissent plus une configuration imposée et opaque, elles ajustent elles-mêmes, dans leur fichier
-\texttt{.tfvars}, les seuils et l'activation des alertes de leur propre service, sous la revue de l'équipe
-Infrastructure. Chaque alerte critique est en outre associée à un runbook et à un dashboard Grafana
-propres au service concerné, ce qui place l'équipe propriétaire en première ligne pour le diagnostic.
-Ce changement de modèle — passer d'une chaîne d'alertes anonymes à des alertes explicitement
-rattachées à une équipe et à un niveau de criticité — est une condition nécessaire pour que la
-gouvernance de l'alerting reste durable dans le temps.
+Cette responsabilisation passe concrètement par le mécanisme de Pull Request : les équipes ajustent
+elles-mêmes, dans leur fichier \texttt{.tfvars}, les seuils et l'activation des alertes de leur service, sous
+revue de l'équipe Infrastructure. Chaque alerte critique est en outre associée à un runbook et à un
+dashboard Grafana propres au service, ce qui place l'équipe propriétaire en première ligne du
+diagnostic — condition nécessaire à une gouvernance durable de l'alerting.
