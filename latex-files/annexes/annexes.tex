@@ -5,7 +5,7 @@
 
 Cette annexe rassemble les schémas d'architecture du système d'alerting. Les représentations
 ci-dessous sont des synthèses textuelles des flux ; elles ont vocation à être remplacées par les captures
-issues des diagrammes de conception (architecture actuelle, stratégie 1 et stratégie 2).
+issues des diagrammes de conception (architecture actuelle et architecture cible).
 
 \subsection*{A.1 Architecture actuelle}
 
@@ -23,7 +23,7 @@ issues des diagrammes de conception (architecture actuelle, stratégie 1 et stra
 	\label{fig:annexe-archi-actuelle}
 \end{figure}
 
-\subsection*{A.2 Architecture cible -- stratégie centralisée (retenue)}
+\subsection*{A.2 Architecture cible}
 
 \begin{figure}[h]
 	\centering
@@ -31,27 +31,12 @@ issues des diagrammes de conception (architecture actuelle, stratégie 1 et stra
 		\parbox{0.9\textwidth}{%
 			Team infra : gestion des alertes en Terraform $\rightarrow$ création des PromRules\\
 			Otel collectors (port 3000) $\rightarrow$ AMP ; CloudWatch pour les métriques d'infra\\
-			AMP / CloudWatch $\rightarrow$ Alertmanager $\rightarrow$ SNS $\rightarrow$ SQS\\
-			Outil de routage $\rightarrow$ Slack / SMS / Appel / Push / Email
+			AMP (Alertmanager managé) / CloudWatch (SNS) $\rightarrow$ incident.io\\
+			incident.io (grouping, routing, escalade) $\rightarrow$ Slack / SMS / Appel / Push / Email
 		}%
 	}
 	\caption{Architecture cible : gestion centralisée des alertes chez l'infrastructure}
 	\label{fig:annexe-archi-cible-centralisee}
-\end{figure}
-
-\subsection*{A.3 Architecture cible -- stratégie déléguée aux développeurs}
-
-\begin{figure}[h]
-	\centering
-	\fbox{%
-		\parbox{0.9\textwidth}{%
-			Équipes : fichier alerts.yaml $\rightarrow$ push GitHub $\rightarrow$ CI/CD\\
-			CI/CD : vérification du YAML $\rightarrow$ génération PromRule / template CloudFormation\\
-			CloudFormation $\rightarrow$ CloudWatch / AMP $\rightarrow$ Alertmanager $\rightarrow$ routage
-		}%
-	}
-	\caption{Variante : gestion des alertes déléguée aux équipes de développement}
-	\label{fig:annexe-archi-cible-deleguee}
 \end{figure}
 
 \section{Annexe B — Tableaux de référence}
@@ -126,11 +111,13 @@ issues des diagrammes de conception (architecture actuelle, stratégie 1 et stra
 		\hline
 		AMP & Amazon Managed Service for Prometheus -- service géré de stockage des métriques Prometheus. \\
 		\hline
-		Alertmanager & Composant de l'écosystème Prometheus gérant dédoublonnage, silences et routage des alertes. \\
+		Alertmanager & Composant de l'écosystème Prometheus, managé par AMP, qui reçoit les alertes déclenchées et les transmet à incident.io. \\
 		\hline
 		EMF & Embedded Metric Format -- format permettant de générer des métriques CloudWatch à partir de logs structurés. \\
 		\hline
 		IaC & Infrastructure as Code -- gestion de l'infrastructure via du code versionné (Terraform, CloudFormation...). \\
+		\hline
+		incident.io & Plateforme de gestion d'incidents et d'astreinte assurant le regroupement (grouping), le routage et l'escalade des alertes vers les bonnes personnes. \\
 		\hline
 		MTTD / MTTR & Mean Time To Detect / Mean Time To Repair -- temps moyens de détection et de réparation d'un incident. \\
 		\hline
@@ -139,8 +126,6 @@ issues des diagrammes de conception (architecture actuelle, stratégie 1 et stra
 		RED & Rate, Errors, Duration -- méthode d'observabilité orientée expérience utilisateur (métriques d'application). \\
 		\hline
 		USE & Utilization, Saturation, Errors -- méthode d'observabilité orientée ressources (métriques d'infrastructure). \\
-		\hline
-		Watchdog & Dead man's switch : alerte toujours active dont la disparition signale une panne de la chaîne d'alerting. \\
 		\hline
 	\end{tabular}
 \end{table}
