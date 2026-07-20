@@ -3,7 +3,7 @@
 \section{Sujet et problématique}
 
 Le sujet de stage, tel que formulé dans la convention, part du constat que la plateforme de jeu génère
-de nombreuses alertes permettant aux personnes d'astreinte de réagir lors d'incidents, mais que ce
+de nombreuses alertes permettant aux personnes d'astreinte de réagir lors d'un problème sur la plateforme, mais que ce
 système souffre d'un manque d'unité et de pertinence. La problématique retenue est la suivante :
 
 \begin{quote}
@@ -37,7 +37,7 @@ service réellement impacté. Cet objectif se décline en plusieurs sous-objecti
 \begin{itemize}
 	\item Étudier l'existant et dresser une cartographie exhaustive des alarmes de la plateforme ;
 	\item Définir des niveaux de criticité pertinents pour l'astreinte ;
-	\item Concevoir une stratégie d'alerting centrée sur les symptômes des incidents plutôt que sur leurs causes ;
+	\item Concevoir une stratégie d'alerting centrée sur les conséquences des incidents plutôt que sur leurs causes ;
 	\item Développer la solution en Infrastructure as Code et préparer son intégration technique autour des composants CloudWatch, AMP (Prometheus) et incident.io ;
 	\item Réduire la fatigue liée aux alertes, améliorer la visibilité opérationnelle et permettre une résolution proactive des incidents.
 \end{itemize}
@@ -51,15 +51,14 @@ et le suivi en phase d'exploitation.
 
 La conduite du projet a suivi une démarche itérative, adaptée à un environnement de production où
 toute modification comporte un risque. J'ai commencé par une phase d'immersion et d'étude :
-compréhension de l'architecture d'alerting existante, lecture du code des fonctions Lambda,
-entretiens informels avec les membres de l'équipe et cartographie des alarmes réellement en place.
+compréhension de l'architecture d'alerting existante, entretiens informels avec les membres de l'équipe et cartographie des alarmes réellement en place.
 Cette phase a débouché sur un diagnostic partagé des forces et des faiblesses du système.
 
 J'ai ensuite mené une phase de conception, formalisée dans une spécification technique, où j'ai
 proposé un modèle d'observabilité (RED et USE), une échelle de criticité et une architecture cible.
 Cette spécification a servi de support de discussion avec l'équipe et le maître de stage avant de passer
 à la réalisation. La phase de développement a été conduite en Infrastructure as Code, avec des
-livraisons progressives validées par revue de code (Pull Requests). Enfin, une stratégie de transition et
+livraisons progressives validées par revue de code. Enfin, une stratégie de transition et
 de validation a été définie pour déployer la solution sans rupture de service. Le travail s'est appuyé au
-quotidien sur les outils de l'entreprise : GitHub pour le code et les revues, Slack pour la communication,
-Redmine pour le suivi des tâches et Grafana pour l'observation des métriques.
+quotidien sur les outils de l'entreprise : GitHub pour le code, les revues et le suivie du projet, Slack pour la communication,
+AWS pour l'infrastructure et Grafana pour la création de tableaux de bord et la visualisation des métriques.

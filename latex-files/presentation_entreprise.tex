@@ -66,8 +66,7 @@ responsable du service réellement impacté, et non diffuser une alerte généri
 L'équipe Infrastructure est une équipe transverse et essentielle de Winamax. En lien avec le CTO, elle
 décide et met en œuvre l'orientation technologique de l'entreprise, comme la migration vers AWS
 décidée en 2018. Sa philosophie consiste à s'appuyer au maximum sur les services gérés fournis par
-AWS et à généraliser l'Infrastructure as Code (IaC), notamment via CloudFormation, Terraform et
-Puppet.
+AWS et à généraliser l'Infrastructure as Code (IaC), notamment via Terraform. 
 
 L'équipe est responsable à la fois de la mise à disposition des différents environnements, de
 l'accompagnement des équipes dans le déploiement de leurs services et de la maintenance de ces
@@ -80,14 +79,13 @@ derniers. Elle prend notamment en charge plusieurs points critiques et communs �
 	\item Gestion de l'API Gateway (Kong) ;
 	\item Déploiement des outils communs : Grafana, AutoScaler, Redmine ;
 	\item Gestion de la stack d'observabilité ;
-	\item Gestion de GitHub et des outils de CI/CD ;
 	\item Gestion des datastores pour les équipes (clusters MySQL, Redis, Kafka).
 \end{itemize}
 
 Enfin, l'équipe supervise la distribution des alertes vers les différentes équipes d'astreinte et assure
 elle-même une astreinte, afin de pouvoir intervenir en cas de problème sur la plateforme. C'est
 précisément dans ce périmètre que s'inscrit le sujet de mon stage : améliorer la chaîne qui relie la
-détection d'un incident à la notification de la bonne personne.
+détection d'un problème sur la plateforme à la notification de la bonne personne.
 
 \section{Contexte technologique}
 
@@ -96,8 +94,7 @@ premise). Entre 2018 et 2022, la plateforme a été majoritairement migrée vers
 (AWS). Quelques serveurs demeurent toutefois dans des datacenters parisiens, hébergeant des
 services liés à la régulation que la loi interdit de migrer vers le cloud. L'organisation AWS de Winamax
 est découpée en de multiples comptes, un pour chaque environnement ou fonctionnalité : Production,
-Prelive, Développement, PCIDSS-prod, PCIDSS-dev, Tools, Network, Keys, IT, Stacksets, Users, entre
-autres.
+Prelive, Développement, PCIDSS-prod, PCIDSS-dev, Tools, Network, Keys, IT, Stacksets, Users \ldots
 
 L'ensemble des droits IAM sur ces comptes est géré par l'équipe Sécurité, et l'accès aux
 environnements se fait via des VPN OpenVPN. Côté collaboration, les équipes s'appuient sur Google
@@ -105,14 +102,14 @@ Workspace, Redmine pour les tickets, Slack pour la communication interne et GitH
 source. Slack joue un rôle central dans la problématique d'alerting, puisqu'il constitue le principal
 canal de notification.
 
-Sur le plan de l'observabilité, la plateforme combine plusieurs briques : Amazon CloudWatch pour les
-métriques et les logs d'infrastructure, Amazon Managed Service for Prometheus (AMP) pour les
+Sur le plan de l'observabilité, la plateforme combine plusieurs briques : Amazon CloudWatch pricipalement pour les
+métriques et les logs d'infrastructure, Amazon Managed Service for Prometheus (AMP) essentiellement pour les
 métriques applicatives collectées par des collecteurs OpenTelemetry, et Grafana pour la visualisation.
 C'est sur cet écosystème riche mais hétérogène que repose le système d'alerting, objet de ce rapport.
 
 \section{Enjeux de conformité et de disponibilité}
 
-L'activité de Winamax est soumise à une régulation stricte : l'agrément délivré par l'ANJ \cite{anj} impose des
+L'activité de Winamax est soumise à une régulation stricte : l'agrément délivré par l'ANJ impose des
 obligations fortes de traçabilité des opérations de jeu, de protection des joueurs et de sécurité des
 données financières. C'est cette contrainte réglementaire qui explique le maintien de certains
 serveurs en datacenter, hors du cloud public, ainsi que l'existence de comptes AWS dédiés et

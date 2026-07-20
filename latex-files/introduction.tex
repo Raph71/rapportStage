@@ -9,19 +9,22 @@ indisponibilité se traduit immédiatement par une dégradation de l’expérien
 perte de revenus et une atteinte potentielle à la réputation de l’entreprise. Le système d’alerting, c’est-à-
 dire l’ensemble des mécanismes qui détectent une anomalie et notifient les équipes d’astreinte, est au cœur
 de cette réactivité.
+
 Ce rapport présente les travaux menés durant mon stage de fin d’études chez Winamax, au sein de
 l’équipe Infrastructure, autour de la refonte de ce système d’alerting. Le point de départ du sujet est un
 constat concret et partagé par les équipes : le système d’alertes existant produit un volume important de
 notifications, dont une partie significative reste peu pertinente pour l’astreinte. De nombreuses alarmes
 sont en effet construites autour de métriques de causes — par exemple une consommation de CPU
-ou de mémoire élevée — plutôt qu’autour de symptômes directement corrélés à un impact utilisateur.
+ou de mémoire élevée — plutôt qu’autour de conséquences directement corrélées à un impact utilisateur.
 Cette situation augmente la charge cognitive des équipes, provoque des réveils inutiles et peut retarder
 l’identification du service réellement en difficulté.
+
 L’objectif du stage est donc de faire évoluer cette approche vers un modèle de criticité plus lisible et
 plus actionnable, permettant de prioriser les interventions selon l’impact réel des incidents. Au-delà du
 simple paramétrage technique, le sujet implique une véritable démarche d’ingénierie : analyse de l’existant,
 conception d’un modèle d’observabilité, choix d’une architecture cible, développement en Infrastructure
 as Code, et réflexion sur la gouvernance et la validation continue de la qualité des alertes.
+
 Le présent rapport est structuré en sept chapitres. Le premier présente l’entreprise Winamax, son
 organisation technique et son contexte technologique. Le deuxième détaille le sujet, les motivations et les
 objectifs du stage. Le troisième analyse le système d’alerting actuel et ses limites. Le quatrième décrit la
