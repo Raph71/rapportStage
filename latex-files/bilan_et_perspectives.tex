@@ -1,51 +1,56 @@
 \chapter{Bilan, validation et perspectives}
 
-\section{Stratégie de validation et indicateurs de suivi}
+\section{Déploiement et validation}
 
-La validation d'une évolution d'alerting ne se limite pas à la réussite technique du déploiement : elle
-doit mesurer la pertinence opérationnelle du système obtenu. J'ai donc défini un ensemble
-d'indicateurs à suivre dans la durée :
+À la fin de mon stage, la nouvelle solution d'alerting est déployée en production pour deux équipes, et
+l'onboarding de deux équipes supplémentaires est en cours. Conformément à la stratégie de transition
+décrite au chapitre précédent, l'ancien système continue de fonctionner en parallèle : il ne sera
+désactivé qu'une fois l'ensemble des équipes migrées, afin de ne laisser aucun angle mort pendant la
+bascule.
+
+Faute de recul suffisant, je n'ai pas encore pu mesurer de gains quantitatifs (baisse du volume
+d'alertes, temps de détection ou de réparation). À ce stade, la validation repose sur des éléments
+qualitatifs :
 
 \begin{itemize}
-	\item le volume d'alertes par niveau de criticité ;
-	\item le ratio entre alertes actionnables et alertes non pertinentes ;
-	\item le temps moyen de détection (MTTD) et de réparation (MTTR) ;
-	\item le ressenti des équipes d'astreinte, en particulier leur niveau de fatigue et leur confiance dans les alertes.
+	\item les retours des équipes pilotes, dont les développeurs se montrent globalement satisfaits de la nouvelle solution et de la clarté des notifications ;
+	\item une validation rétrospective : plusieurs incidents survenus sous l'ancien système, faute d'alerte adaptée, auraient été détectés à temps par la nouvelle solution. Nous avons vérifié, sur ces cas concrets, que les alertes désormais en place auraient bien prévenu l'astreinte.
 \end{itemize}
 
-Ces métriques permettent d'ajuster continûment les seuils et la classification, dans une logique
-d'amélioration continue.
+La définition d'indicateurs de suivi quantitatifs — volume d'alertes par criticité, ratio d'alertes
+actionnables, temps moyen de détection (MTTD) et de réparation (MTTR) — constitue une étape
+naturelle une fois la solution généralisée et le recul suffisant.
 
 \section{Gains attendus de la solution}
 
-La solution conçue apporte des bénéfices à plusieurs niveaux :
+Les premiers retours étant encourageants, la solution devrait apporter des bénéfices à plusieurs
+niveaux :
 
 \begin{itemize}
-	\item \textbf{Gestion des astreintes et réactivité} : réduction de la fatigue d'alerte — seules les alertes urgentes ou critiques réveillent la personne d'astreinte —, amélioration des temps de détection et de réparation en identifiant directement le service problématique, et fin des interventions inutiles.
-	\item \textbf{Infrastructure et développement} : visibilité précise sur la plateforme, aidant les développeurs à savoir exactement quels services nécessitent une intervention.
-	\item \textbf{Expérience utilisateur et entreprise} : amélioration de la disponibilité de l'application grâce à une résolution plus rapide des incidents, ce qui contribue à la réputation de Winamax, à la diminution des plaintes utilisateurs et donc à son attractivité.
+	\item \textbf{Gestion des astreintes et réactivité} : réduction de la fatigue d'alerte — seules les alertes réellement critiques réveillent la personne d'astreinte —, meilleure identification du service en cause et fin des interventions inutiles ;
+	\item \textbf{Infrastructure et développement} : visibilité précise sur l'état de la plateforme, permettant aux équipes de savoir exactement quels services nécessitent une intervention ;
+	\item \textbf{Expérience utilisateur et entreprise} : résolution plus rapide des incidents et détection de problèmes auparavant passés inaperçus, ce qui contribue à la disponibilité de la plateforme et à la satisfaction des joueurs.
 \end{itemize}
 
 \section{Limites}
 
-Le travail réalisé constitue une base méthodologique et technique solide, mais plusieurs limites
-doivent être soulignées. La liste des métriques d'application, aujourd'hui centrée sur trois indicateurs
-clés, est vouée à évoluer et à s'affiner service par service. La gestion des alertes personnalisées n'est
-pas encore prise en charge par le module Terraform. Le calcul de l'Error Rate par méthode, envisagé,
-reste délicat car les seuils diffèrent selon les méthodes et pourraient réintroduire du bruit. Enfin, la
-pleine réussite de la solution dépend d'une gouvernance rigoureuse : sans réévaluation régulière des
-seuils et sans discipline collective, un système d'alerting tend naturellement à se dégrader et à
-redevenir bruyant.
+Le travail réalisé constitue une base solide, mais plusieurs limites subsistent :
+
+\begin{itemize}
+	\item \textbf{Cycle de vie des alertes} : la création, la mise à jour et la suppression des alertes au rythme des services réellement déployés restent à outiller. Rien ne garantit encore automatiquement que la configuration d'alerting demeure alignée avec l'état réel de la plateforme.
+	\item \textbf{Couverture non garantie} : aucun mécanisme n'oblige les équipes à déclarer des alertes sur leurs services, ni ne permet de vérifier que chaque service en dispose. Un service peut donc rester sans surveillance.
+	\item \textbf{Généralisation en cours} : la solution ne couvre pour l'instant que deux équipes ; sa pleine valeur ne sera démontrée qu'une fois étendue à l'ensemble du plateau technique.
+	\item \textbf{Gouvernance dans la durée} : comme tout système d'alerting, sa pertinence dépend d'une discipline collective ; sans réévaluation régulière des seuils, un tel système tend naturellement à redevenir bruyant.
+\end{itemize}
 
 \section{Perspectives}
 
-Plusieurs axes d'évolution se dégagent :
+Plusieurs axes d'évolution se dégagent, dans le prolongement direct du travail réalisé :
 
 \begin{itemize}
-	\item affiner la granularité des niveaux de criticité selon les services et étendre la surveillance aux composants backend (workers, Kafka, Redis), avec par exemple des alertes sur le consumer lag ;
-	\item renforcer l'intégration avec les runbooks et les dashboards Grafana, pour un diagnostic toujours plus rapide ;
-	\item automatiser le cycle de vie des alertes via Backstage, afin de garantir une cohérence durable entre les services déployés et leur configuration d'alerting ;
-	\item industrialiser le suivi de la qualité des alertes — tableaux de bord d'indicateurs, revues régulières — afin de pérenniser les gains obtenus.
+	\item \textbf{Généraliser la solution} à toutes les équipes du plateau technique, en poursuivant l'onboarding déjà engagé, jusqu'au déclassement complet de l'ancien système ;
+	\item \textbf{S'appuyer sur Backstage}, le catalogue de services de l'entreprise, pour suivre les services réellement déployés, gérer automatiquement le cycle de vie des alertes associées et détecter les services ne disposant d'aucune alerte configurée ;
+	\item \textbf{Mettre en place des indicateurs de qualité} de l'alerting (volume par criticité, ratio d'alertes actionnables, MTTD/MTTR) afin de piloter l'amélioration continue dans la durée.
 \end{itemize}
 
 \section{Bilan personnel}
@@ -80,11 +85,11 @@ pendant ce stage.
 		\hline
 		Documentation & Spécification technique du modèle RED/USE, runbooks par service, rédaction de ce rapport. \\
 		\hline
-		Évaluation en mise en œuvre & Définition d'indicateurs de suivi (volume d'alertes, ratio actionnable, MTTD/MTTR) et de la stratégie de double-run. \\
+		Évaluation en mise en œuvre & Validation par double-run, retours des équipes pilotes et analyse rétrospective d'incidents. \\
 		\hline
-		Administration \& exploitation & Branchement à incident.io (grouping, routing, escalade), gestion du cycle de vie des alertes ; missions de fast (provisionnement, réseau, Puppet). \\
+		Administration \& exploitation & Branchement à incident.io (grouping, routing, escalade), déploiement en production et double-run ; missions de fast (provisionnement, réseau, Puppet). \\
 		\hline
-		Gestion des dysfonctionnements & Diagnostic de bout en bout des incidents réseau et des pannes de la chaîne d'alerting durant le fast. \\
+		Gestion des dysfonctionnements & Diagnostic de bout en bout des incidents réseau lors du fast ; analyse des défaillances de l'ancienne chaîne d'alerting. \\
 		\hline
 	\end{tabular}
 \end{table}

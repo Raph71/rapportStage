@@ -9,7 +9,7 @@ corréler manuellement une dizaine de métriques techniques. Pour atteindre cet 
 de conception ont été retenues :
 
 \begin{itemize}
-	\item privilégier les signaux liés aux symptômes de panne plutôt qu'aux seules causes techniques ;
+	\item privilégier les signaux liés aux conséquences d'une panne plutôt qu'à ses seules causes techniques ;
 	\item expliciter le niveau de criticité de chaque alerte ;
 	\item associer chaque alerte à un périmètre de responsabilité identifié (service, équipe) ;
 	\item ajouter plus de contexte dans les notifications, afin de faciliter le diagnostic initial et d'accélérer la résolution.
@@ -61,36 +61,35 @@ permet à la fois d'alerter au bon moment et de diagnostiquer rapidement.
 
 \section{Des métriques d'application au cœur de l'alerting}
 
-Actuellement, le système d'alerte repose presque exclusivement sur les métriques d'infrastructure
-collectées via CloudWatch — par exemple une alarme du type \texttt{CPUUtilization > 80 \%} pendant 5
-minutes. L'ambition de la nouvelle solution est d'exploiter en priorité les métriques d'application
-exposées par Prometheus, notamment celles définies dans le middleware JSON-RPC. Ces métriques
-sont déjà collectées par les collecteurs OpenTelemetry déployés sur les clusters applicatifs et stockées
-dans AMP (Amazon Managed Service for Prometheus), mais elles n'étaient jusqu'ici pas utilisées pour
-l'alerting.
+Le principal levier de la nouvelle solution consiste à déplacer l'alerting des métriques d'infrastructure
+vers les métriques d'application. Jusqu'ici, les alertes reposaient presque exclusivement sur des
+indicateurs techniques collectés par CloudWatch — par exemple une alarme du type
+\texttt{CPUUtilization > 80 \%} pendant cinq minutes. Ces signaux décrivent l'état des machines, mais
+pas ce que vivent réellement les joueurs.
 
-J'ai donc défini trois métriques clés à mettre en place sur l'ensemble des API, ou du moins les plus
-critiques :
+Or la plateforme expose déjà un ensemble riche de métriques applicatives, produites par un middleware
+JSON-RPC instrumenté avec OpenTelemetry, puis collectées et stockées dans AMP (Amazon Managed
+Service for Prometheus). Ces métriques n'étaient pourtant pas exploitées pour l'alerting. Les brancher
+à la chaîne d'alerte constitue le cœur de ma contribution : elles permettent d'alerter au niveau du
+métier — le comportement des services tel que les joueurs le perçoivent — et non plus seulement au
+niveau des ressources techniques.
+
+Cette bascule est rendue possible par Prometheus et son langage de requêtes, PromQL. Là où
+CloudWatch se limite pour l'essentiel à des seuils sur des métriques d'infrastructure, PromQL permet
+d'exprimer des conditions fines et directement liées à l'expérience utilisateur. Sur cette base, j'ai
+standardisé trois métriques appliquées aux API de la plateforme :
 
 \begin{itemize}
-	\item \textbf{Latency P99} : le temps de latence pour le 1 \% des requêtes les plus lentes, révélateur d'une dégradation ressentie par les utilisateurs.
-	\item \textbf{Error Rate} : le ratio de requêtes échouées sur les requêtes totales, à partir du statut JSON-RPC de chaque service.
-	\item \textbf{Service Down} : la vérification que le nombre de requêtes d'un service ne descend pas sous un certain seuil, en s'appuyant sur le nombre de requêtes du target group dans CloudWatch.
+	\item \textbf{Latency P99} : le temps de réponse du 1 \% des requêtes les plus lentes, révélateur d'une lenteur ressentie par les joueurs ;
+	\item \textbf{Error Rate} : la proportion de requêtes en échec, calculée à partir du statut JSON-RPC renvoyé par chaque service ;
+	\item \textbf{Service Down} : la chute anormale du volume de requêtes reçues par un service, signe qu'il ne répond plus.
 \end{itemize}
 
-Ces trois métriques permettent de créer des alertes bien plus représentatives de ce que vit
-l'utilisateur. La priorité est d'abord donnée aux API, reflet le plus direct de l'expérience utilisateur.
-Dans un second temps, la surveillance sera étendue aux services backend (workers, Kafka, Redis...),
-essentiels à la cohérence et à la performance dans la durée. Par exemple, une alerte sur le consumer
-lag de Kafka — l'écart entre le dernier message produit et le dernier message consommé —
-permettrait d'identifier rapidement la cause d'une latence d'API ressentie côté utilisateur. En résumé,
-les alertes sur les API signalent un problème pour l'utilisateur, tandis que les alertes backend
-permettent d'en diagnostiquer rapidement l'origine.
-
-En complément des métriques, la solution conserve des alertes basées sur les logs, à l'aide d'une
-métrique comptabilisant le nombre de logs d'erreur. Afin de réduire le bruit, un niveau de sévérité
-différent est attribué selon le nombre d'erreurs détectées sur une fenêtre de cinq minutes : quelques
-erreurs isolées relèvent de l'information, tandis qu'un afflux massif traduit un incident.
+Prises ensemble, ces métriques traduisent directement l'impact sur l'utilisateur : une hausse du taux
+d'erreur sur l'API de dépôt signale immédiatement qu'un joueur ne parvient plus à déposer d'argent —
+une information bien plus actionnable qu'un simple pic de CPU. Au-delà de ces trois indicateurs
+standards, PromQL offre à chaque équipe la liberté de définir ses propres alertes métier, au plus près
+de la réalité de son service.
 
 \section{Les niveaux de criticité}
 
@@ -157,11 +156,13 @@ que l'alerte parvient bien à la personne experte du service en cause.
 
 \section{Corrélation RED / USE et runbooks}
 
-Afin d'améliorer le temps moyen de réparation (MTTR), les alertes de criticité « Critical » ou « High »
-de type RED sont associées aux alertes de type « Warning » de type USE du même service. Cette corrélation facilite le diagnostic pour la personne d'astreinte : plutôt
-que de recevoir une alerte isolée, elle dispose immédiatement des pistes de cause. Par exemple, si le
-service \texttt{betting-api} signale un dépassement du seuil de latence P99 pendant plus de cinq minutes, l'alerte intègre les warnings susceptibles d'en être la cause, comme un ralentissement
-dans la lecture d'une base de données.
+Afin d'améliorer le temps moyen de réparation (MTTR), les alertes RED de criticité « Critical » ou
+« High » (les conséquences) sont associées aux alertes USE « Warning » du même service (les causes
+possibles). Cette corrélation facilite le diagnostic pour la personne d'astreinte : plutôt que de recevoir
+une alerte isolée, elle dispose immédiatement des pistes de cause. Par exemple, si le service
+\texttt{betting-api} signale un dépassement du seuil de latence P99 pendant plus de cinq minutes,
+l'alerte intègre les warnings susceptibles d'en être la cause, comme un ralentissement dans la lecture
+d'une base de données.
 
 Chaque alerte est en outre associée à un runbook comprenant un lien direct vers le dashboard Grafana
 du service concerné. Ce tableau de bord offre une visualisation détaillée permettant d'identifier

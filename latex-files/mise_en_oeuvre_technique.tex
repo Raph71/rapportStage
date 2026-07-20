@@ -5,10 +5,10 @@
 La solution que j'ai conçue s'appuie sur une chaîne d'alerting entièrement pilotée par le code. Les
 métriques d'infrastructure sont surveillées via CloudWatch, tandis que les métriques d'application sont
 collectées par les collecteurs OpenTelemetry et stockées dans AMP. 
-Les règles d'alerte,décrites en Terraform, sont déployées automatiquement sous forme d'alarmes
+Les règles d'alerte, décrites en Terraform, sont déployées automatiquement sous forme d'alarmes
 dans CloudWatch et de règles Prometheus dans AMP. Lorsqu'une alerte se
 déclenche, elle est transmise à incident.io — depuis AMP via son Alertmanager
-managé, depuis CloudWatch via un topic SNS. 
+managé, depuis CloudWatch via un topic SNS.
 C'est incident.io qui prend alors en charge le regroupement (grouping), le routage et l'escalade des alertes, avant de notifier les bonnes personnes
 sur le canal le plus adapté (Slack, SMS, appel, notification push ou e-mail).
 
@@ -207,7 +207,7 @@ identifiés lors du diagnostic.
 		\hline
 		Pertinence des alertes &
 		Alertes majoritairement construites sur des causes techniques (CPU, mémoire) &
-		Alertes structurées selon les méthodes RED et USE, orientées symptômes et impact utilisateur \\
+		Alertes structurées selon les méthodes RED et USE, orientées conséquences et impact utilisateur \\
 		\hline
 		Ownership &
 		Aucun rattachement des alertes à une équipe responsable &

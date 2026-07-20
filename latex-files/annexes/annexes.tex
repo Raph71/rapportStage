@@ -3,41 +3,28 @@
 
 \section{Annexe A — Schémas d'architecture}
 
-Cette annexe rassemble les schémas d'architecture du système d'alerting. Les représentations
-ci-dessous sont des synthèses textuelles des flux ; elles ont vocation à être remplacées par les captures
-issues des diagrammes de conception (architecture actuelle et architecture cible).
+Cette annexe rassemble, en pleine page, les schémas d'architecture du système d'alerting avant et
+après la refonte, également présentés dans le corps du rapport (chapitres 3 et 5).
 
 \subsection*{A.1 Architecture actuelle}
 
 \begin{figure}[h]
 	\centering
-	\fbox{%
-		\parbox{0.9\textwidth}{%
-			Load Balancer $\rightarrow$ Target Group $\rightarrow$ ECS services\\
-			CloudTrail détecte les changements $\rightarrow$ EventBridge $\rightarrow$ Lambdas\\
-			Lambdas $\rightarrow$ CloudWatch (alarmes CPU/mémoire, alarmes target group, métriques de log EMF)\\
-			CloudWatch $\rightarrow$ SNS $\rightarrow$ SQS $\rightarrow$ Lambda errors-to-slack $\rightarrow$ Slack
-		}%
-	}
+	\includegraphics[width=\textwidth]{ressources-graphiques/alertingV1.png}
 	\caption{Chaîne actuelle de création et de diffusion des alarmes}
 	\label{fig:annexe-archi-actuelle}
 \end{figure}
+\FloatBarrier
 
 \subsection*{A.2 Architecture cible}
 
 \begin{figure}[h]
 	\centering
-	\fbox{%
-		\parbox{0.9\textwidth}{%
-			Team infra : gestion des alertes en Terraform $\rightarrow$ création des PromRules\\
-			Otel collectors (port 3000) $\rightarrow$ AMP ; CloudWatch pour les métriques d'infra\\
-			AMP (Alertmanager managé) / CloudWatch (SNS) $\rightarrow$ incident.io\\
-			incident.io (grouping, routing, escalade) $\rightarrow$ Slack / SMS / Appel / Push / Email
-		}%
-	}
+	\includegraphics[width=\textwidth]{ressources-graphiques/schema_v2.png}
 	\caption{Architecture cible : gestion centralisée des alertes chez l'infrastructure}
 	\label{fig:annexe-archi-cible-centralisee}
 \end{figure}
+\FloatBarrier
 
 \section{Annexe B — Tableaux de référence}
 

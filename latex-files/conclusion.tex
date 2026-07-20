@@ -5,15 +5,15 @@
 Ce stage a permis de traiter un enjeu central d'exploitation : améliorer la pertinence de l'alerting pour
 renforcer la réactivité opérationnelle et réduire la fatigue d'astreinte. L'analyse de l'existant a montré
 que la chaîne technique en place, bien qu'automatisée, générait un bruit significatif du fait d'alertes
-orientées causes plutôt que symptômes, sans niveau de criticité ni ownership clair par service.
+orientées causes plutôt que conséquences, sans niveau de criticité ni ownership clair par service.
 
 À partir de ce diagnostic, j'ai conçu et développé une nouvelle solution fondée sur des principes solides
-: alerter sur les symptômes grâce aux méthodes RED et USE, hiérarchiser les alertes selon quatre
+: alerter sur les conséquences grâce aux méthodes RED et USE, hiérarchiser les alertes selon quatre
 niveaux de criticité, router intelligemment les notifications selon le service, la priorité et
-l'environnement, et associer chaque alerte à un runbook. La mise en œuvre en Infrastructure as Code,
-avec un module Terraform déployant les règles dans CloudWatch et AMP et un branchement à incident.io
-pour le regroupement, le routage et l'escalade des notifications, complétée par une gestion automatisée
-du cycle de vie des alertes, dote Winamax d'un système d'alerting moderne, modulable et maintenable.
+l'environnement, et enrichir chaque notification de son contexte (priorité, description, runbook et
+dashboard Grafana). La mise en œuvre en Infrastructure as Code, avec un module Terraform déployant
+les règles dans CloudWatch et AMP et un branchement à incident.io pour le regroupement, le routage et
+l'escalade des notifications, dote Winamax d'un système d'alerting moderne, modulable et maintenable.
 
 Au-delà des aspects techniques, ce sujet met en évidence l'importance d'une gouvernance durable de
 l'alerting : conventions communes, suivi d'indicateurs de qualité, réévaluation régulière des seuils et
