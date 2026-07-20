@@ -1,6 +1,6 @@
 \chapter{Conception de la nouvelle solution}
 
-\section{Principe directeur : alerter sur les symptômes}
+\section{Principe directeur : alerter sur les conséquences plutôt que sur les causes}
 
 La conception proposée repose sur un principe simple mais structurant : une alerte doit représenter
 un risque opérationnel clair, compréhensible et actionnable. La personne d'astreinte alertée doit
@@ -12,15 +12,21 @@ de conception ont été retenues :
 	\item privilégier les signaux liés aux symptômes de panne plutôt qu'aux seules causes techniques ;
 	\item expliciter le niveau de criticité de chaque alerte ;
 	\item associer chaque alerte à un périmètre de responsabilité identifié (service, équipe) ;
-	\item standardiser la structure des notifications pour accélérer le diagnostic initial.
+	\item ajouter plus de contexte dans les notifications, afin de faciliter le diagnostic initial et d'accélérer la résolution.
 \end{itemize}
 
 \section{Deux points de vue complémentaires : les méthodes RED et USE}
 
-Pour structurer la surveillance, j'ai retenu deux méthodes reconnues de l'ingénierie de fiabilité
-(SRE) \cite{sre-google}, en les appliquant à des types de métriques distincts. La méthode USE
-s'applique aux métriques d'infrastructure et adopte une vue « côté machine », tandis que la méthode
-RED s'applique aux métriques d'application et adopte une vue « côté client ».
+Pour structurer la surveillance, j'ai retenu deux méthodes reconnues de l'ingénierie SRE \cite{sre-google}, en les appliquant à des types de métriques distincts. La méthode USE
+s'applique aux métriques d'infrastructure et adopte une vue « côté machine », tandis que la méthode RED s'applique aux métriques d'application et adopte une vue « côté client ».
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{ressources-graphiques/use_red.png}
+	\caption{Comparaison des méthodes RED (côté client) et USE (côté machine)}
+	\label{fig:red-use}
+\end{figure}
+\FloatBarrier
 
 \subsection{La méthode USE (vue côté machine)}
 
@@ -152,11 +158,9 @@ que l'alerte parvient bien à la personne experte du service en cause.
 \section{Corrélation RED / USE et runbooks}
 
 Afin d'améliorer le temps moyen de réparation (MTTR), les alertes de criticité « Critical » ou « High »
-de type RED (symptômes) sont associées aux alertes de type « Warning » de type USE (causes
-possibles) du même service. Cette corrélation facilite le diagnostic pour la personne d'astreinte : plutôt
+de type RED sont associées aux alertes de type « Warning » de type USE du même service. Cette corrélation facilite le diagnostic pour la personne d'astreinte : plutôt
 que de recevoir une alerte isolée, elle dispose immédiatement des pistes de cause. Par exemple, si le
-service \texttt{betting-api} signale un dépassement du seuil de latence P99 pendant plus de cinq minutes (le
-symptôme), l'alerte intègre les warnings susceptibles d'en être la cause, comme un ralentissement
+service \texttt{betting-api} signale un dépassement du seuil de latence P99 pendant plus de cinq minutes, l'alerte intègre les warnings susceptibles d'en être la cause, comme un ralentissement
 dans la lecture d'une base de données.
 
 Chaque alerte est en outre associée à un runbook comprenant un lien direct vers le dashboard Grafana
@@ -165,17 +169,3 @@ rapidement la ou les méthodes problématiques de l'API. Le runbook constitue ai
 unique pour comprendre l'alerte et engager la résolution, sans perte de temps en recherche
 d'informations.
 
-\section{Conventions de nommage et tags}
-
-Pour garantir la traçabilité et distinguer clairement les nouvelles alertes des anciennes, une
-convention de nommage homogène a été définie sous la forme :
-
-\begin{center}
-	\texttt{alerts/\$\{Family\}/\$\{Team\}/\$\{Service\}/\$\{AlarmName\}}
-\end{center}
-
-Chaque alerte porte par ailleurs un
-ensemble de tags normalisés — Team, Service, Family, Environment, Accountid, GitHub (chemin du
-code Terraform), Version et Severity — qui permettent le routage, le filtrage et l'audit des alertes.
-Cette gouvernance du nommage et des tags est déterminante pour éviter, à terme, le retour à un
-système trop bruyant ou incohérent.

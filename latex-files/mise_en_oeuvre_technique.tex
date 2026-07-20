@@ -4,69 +4,110 @@
 
 La solution que j'ai conçue s'appuie sur une chaîne d'alerting entièrement pilotée par le code. Les
 métriques d'infrastructure sont surveillées via CloudWatch, tandis que les métriques d'application sont
-collectées par les collecteurs OpenTelemetry et stockées dans AMP \cite{aws-amp}. Les règles d'alerte,
-décrites en Terraform \cite{terraform-docs}, sont déployées automatiquement sous forme d'alarmes
-dans CloudWatch et de règles Prometheus \cite{prometheus-docs} dans AMP. Lorsqu'une alerte se
-déclenche, elle est transmise à incident.io \cite{incidentio} — depuis AMP via son Alertmanager
-managé, depuis CloudWatch via un topic SNS. C'est incident.io qui prend alors en charge le
-regroupement (grouping), le routage et l'escalade des alertes, avant de notifier les bonnes personnes
-sur le canal le plus adapté (Slack, SMS, appel, notification push ou e-mail). En m'appuyant sur un outil
-spécialisé plutôt que sur une chaîne maison, j'ai gagné en fiabilité et en simplicité de maintenance.
+collectées par les collecteurs OpenTelemetry et stockées dans AMP. 
+Les règles d'alerte,décrites en Terraform, sont déployées automatiquement sous forme d'alarmes
+dans CloudWatch et de règles Prometheus dans AMP. Lorsqu'une alerte se
+déclenche, elle est transmise à incident.io — depuis AMP via son Alertmanager
+managé, depuis CloudWatch via un topic SNS. 
+C'est incident.io qui prend alors en charge le regroupement (grouping), le routage et l'escalade des alertes, avant de notifier les bonnes personnes
+sur le canal le plus adapté (Slack, SMS, appel, notification push ou e-mail).
 
 \begin{figure}[h]
 	\centering
-	\fbox{%
-		\parbox{0.9\textwidth}{%
-			\textbf{Schéma de l'architecture cible (à remplacer par la capture de l'architecture retenue).}\\
-			GitHub (Terraform) $\rightarrow$ règles déployées dans CloudWatch (alarmes) et AMP (règles
-			Prometheus) $\rightarrow$ transmission à incident.io (via SNS pour CloudWatch, via
-			l'Alertmanager managé pour AMP) $\rightarrow$ incident.io : grouping, routage, escalade
-			$\rightarrow$ Slack / SMS / Appel / Push / E-mail.
-		}%
-	}
+	\includegraphics[width=\textwidth]{ressources-graphiques/schema_v2.png}
 	\caption{Architecture cible de la chaîne d'alerting}
 	\label{fig:archi-alerting-cible}
 \end{figure}
+\FloatBarrier
 
 \section{Le module Terraform et les fichiers de configuration}
 
-J'ai développé un module Terraform dédié à la gestion centralisée des alertes génériques CloudWatch
-et AMP. Les développeurs disposent de deux leviers : modifier les
-seuils par défaut en ajustant les valeurs dans le fichier \texttt{.tfvars} spécifique à l'environnement, et
-choisir d'appliquer ou non une alerte à leur service. L'arborescence du dossier
-\texttt{shared/shared-alarms} attribue à chaque équipe un dossier contenant trois fichiers \texttt{.tfvars}, un par
-environnement (production, développement, prelive).
+Pour industrialiser la création des alertes, j'ai développé un module Terraform unique, réutilisable
+par toutes les équipes. Ce module sait créer des alertes aussi bien dans CloudWatch que dans
+Prometheus, sans que les développeurs aient besoin de connaître le fonctionnement interne de ces
+outils.
 
-\begin{figure}[h]
-	\centering
-	\fbox{%
-		\begin{minipage}{0.9\textwidth}
-			\ttfamily\raggedright
-			environment = "dev"\\[0.5em]
-			services = \{\\
-			\ \ "cloudwatch-alarms-api" = \{\\
-			\ \ \ \ cluster\ \ \ \ \ = "clu-infra-staging"\\
-			\ \ \ \ cpu\ \ \ \ \ \ \ \ \ = \{ threshold = 78 \}\\
-			\ \ \ \ memory\ \ \ \ \ = \{ threshold = 90 \}\\
-			\ \ \ \ latency\_p99 = \{ threshold = 2 \}\\
-			\ \ \}\\
-			\}
-		\end{minipage}%
-	}
-	\caption{Structure d'un fichier \texttt{.tfvars} permettant à une équipe de surcharger les seuils par défaut}
-	\label{fig:extrait-tfvars}
-\end{figure}
+Il propose deux types d'alertes prêtes à l'emploi, correspondant aux méthodes présentées au chapitre
+précédent : des alertes \textbf{USE} (santé des ressources machine : CPU, mémoire, erreurs 4XX/5XX,
+temps de réponse...) et des alertes \textbf{RED} (expérience utilisateur : taux d'erreur, latence...). Si un
+besoin plus spécifique se présente, une équipe peut également déclarer une \textbf{alerte
+personnalisée}, en écrivant elle-même sa requête Prometheus (PromQL) ou sa configuration
+CloudWatch.
+
+Chaque équipe possède son propre dossier dans le dépôt du module et y déclare ses alertes, dans le
+fichier correspondant à l'environnement concerné (production, développement ou pré-production).
+Cette organisation centralise la déclaration des alertes à un seul endroit, alors qu'elle était auparavant
+dispersée entre plusieurs mécanismes.
+
+\subsection{Exemple d'alerte USE par défaut}
+
+L'exemple ci-dessous active, pour le service \texttt{account-options} du cluster ECS
+\texttt{clu-betting-api}, les alertes par défaut de type USE (CPU, mémoire, erreurs 4XX/5XX, temps de
+réponse) : il suffit de déclarer ces champs vides pour que le module applique automatiquement des
+seuils par défaut.
+
+\begin{lstlisting}[style=codestyleblack, language=HCL, caption={Activation d'alertes USE par défaut sur un service ECS}, label={lst:use-example}]
+ecs = {
+  "clu-betting-api" = {
+    "account-options" = {
+      cpu                  = {}
+      memory               = {}
+      target_4xx           = {}
+      target_5xx           = {}
+      target_response_time = {}
+    }
+  }
+}
+\end{lstlisting}
+
+\subsection{Exemple d'alerte RED par défaut}
+
+De la même manière, l'exemple suivant active les alertes par défaut de type RED (taux d'erreur et
+latence) pour une API du même service.
+
+\begin{lstlisting}[style=codestyleblack, language=HCL, caption={Activation d'alertes RED par défaut sur une API}, label={lst:red-example}]
+apis = {
+  "clu-betting-api" = {
+    "account-options" = {
+      error_rate  = {}
+      latency_p99 = {}
+    }
+  }
+}
+\end{lstlisting}
+
+\subsection{Exemple d'alerte personnalisée}
+
+Lorsque les alertes par défaut ne suffisent pas, une équipe peut déclarer une alerte entièrement
+personnalisée, en fournissant sa propre requête PromQL ainsi que le niveau de priorité, la description
+et les liens (dashboard, runbook) qui apparaîtront dans la notification finale.
+
+\begin{lstlisting}[style=codestyleblack, language=HCL, caption={Déclaration d'une alerte personnalisée en PromQL}, label={lst:custom-example}]
+custom_alerts = {
+  "vpn_sogei_contract_limit" = {
+    prometheus = {
+      promql       = "node_nf_conntrack_entries{instance=~"vpn-sogei.*"} / node_nf_conntrack_entries_limit{instance=~"vpn-sogei.*"} * 100 > 80"
+      for_duration = "5m"
+    }
+    priority      = "Critical"
+    description   = "Conntrack entries are above 80% of the limit for the last 5 minutes on {{ $labels.instance }}"
+    dashboard_url = "https://grafana.tools.winamax.fr/d/anmmkz9/infra-vpn-sogei?orgId=1&from=now-24h&to=now&timezone=browser&var-prometheus=cdxhb0hdeayo0f&var-scrapper_svc_name=sogei-vpn-exporter&var-ike=sogei&var-child=sogei_child&refresh=1m&viewPanel=panel-21"
+    runbook_url   = "https://backstage.tools.winamax.fr/docs/infra/domain/infra/regulation/IT/"
+  }
+}
+\end{lstlisting}
+
+Cet exemple illustre concrètement la notification étudiée plus loin (figure~\ref{fig:incident-sms}) : la
+priorité, la description ainsi que les liens vers le dashboard et le runbook déclarés ici sont précisément
+ceux qui apparaissent dans la notification reçue par la personne d'astreinte.
 
 Une fois leurs modifications réalisées, les développeurs soumettent une Pull Request, ce qui déclenche
-le processus de CI/CD appliquant les changements. La gestion des alertes personnalisées n'est pas
-encore prise en charge par le module ; les développeurs conservent toutefois la possibilité de créer ce
-type d'alerte directement dans leur fichier CloudFormation.
+le processus de CI/CD appliquant les changements. 
 
 \section{La chaîne de routage des notifications}
 
 Une fois qu'une alerte se déclenche dans CloudWatch ou dans AMP, elle est transmise à incident.io, qui
-applique une logique de notification complète. J'ai retenu cet outil car il prend en charge, de façon
-native et intelligente, les traitements qu'il aurait fallu développer et maintenir soi-même :
+applique une logique de notification complète. Nous avons retenu cet outil car il accepte plusieurs sources d'alertes et propose les fonctionnalités suivantes, essentielles pour notre cas d'usage :
 
 \begin{itemize}
 	\item \textbf{regrouper} les alertes liées à un même service afin d'éviter la submersion (grouping) ;
@@ -79,21 +120,35 @@ native et intelligente, les traitements qu'il aurait fallu développer et mainte
 Cette étape est décisive : c'est elle qui transforme un signal technique brut en une notification claire,
 priorisée et directement actionnable par la personne d'astreinte.
 
-\section{Gestion du cycle de vie des alertes}
+\section{Ce que reçoivent désormais les développeurs}
 
-Pour rester fiable, le système exige que les alertes créées via Terraform correspondent précisément
-aux services réellement déployés : le retrait d'un service doit supprimer automatiquement ses
-alertes, et l'ajout d'un service doit les créer automatiquement. Deux approches ont été étudiées :
-utiliser EventBridge pour détecter ces évolutions dans les clusters et déclencher une Pull Request de
-mise à jour du code Terraform, ou bien se baser sur GitHub comme source de vérité.
+Concrètement, lorsqu'une alerte se déclenche aujourd'hui, la personne d'astreinte reçoit une
+notification push envoyée par incident.io directement sur son téléphone, comme illustré à la
+figure~\ref{fig:incident-sms}.
 
-À plus long terme, la solution la plus prometteuse consiste à s'appuyer sur le catalogue Backstage
-comme source unique de vérité, capable d'identifier les services déployés par chaque équipe et de
-cartographier leurs dépendances — par exemple, si le service A dépend de la base de données du
-service B, seule une alerte sur B est générée en cas de défaillance de cette base. Le cycle envisagé :
-interrogation périodique de l'API Backstage par une GitHub Action, comparaison avec les
-fichiers \texttt{.tfvars}, génération automatique d'une Pull Request, puis validation par l'équipe
-Infrastructure et application par Terraform.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.35\textwidth]{ressources-graphiques/incident_sms.png}
+	\caption{Notification reçue par la personne d'astreinte via incident.io}
+	\label{fig:incident-sms}
+\end{figure}
+\FloatBarrier
+
+Cette notification tranche nettement avec le simple SMS décrit au chapitre précédent
+(figure~\ref{fig:sms-astreinte}), qui ne contenait que le nom brut de l'alarme. Elle regroupe désormais
+en un seul endroit tous les éléments nécessaires à une première évaluation de l'incident :
+
+\begin{itemize}
+	\item une \textbf{description} explicite du problème (ici, la coupure d'un VPN et le composant précis concerné), qui évite d'avoir à interpréter un nom d'alarme technique ;
+	\item un \textbf{niveau de priorité} (\emph{Critical} dans cet exemple), qui indique immédiatement le degré d'urgence de l'intervention et la légitimité du réveil ;
+	\item un lien direct vers le \textbf{dashboard} Grafana du service concerné, pour visualiser sans délai l'état du système ;
+	\item lorsqu'il est configuré pour l'alerte, un lien vers le \textbf{runbook} associé, qui propose une première piste de diagnostic et de résolution ;
+	\item le chemin d'escalade suivi (\emph{Path}) ainsi que les actions directement disponibles (accuser réception, déclarer un incident, se signaler indisponible, ou reporter la notification).
+\end{itemize}
+
+Ce niveau de contexte permet à la personne d'astreinte de juger en quelques secondes de la criticité
+réelle de la situation, sans avoir à se connecter à plusieurs outils pour reconstituer l'information,
+contrairement à ce qu'imposait l'ancien système.
 
 \section{Stratégie de transition}
 
@@ -123,3 +178,50 @@ elles-mêmes, dans leur fichier \texttt{.tfvars}, les seuils et l'activation des
 revue de l'équipe Infrastructure. Chaque alerte critique est en outre associée à un runbook et à un
 dashboard Grafana propres au service, ce qui place l'équipe propriétaire en première ligne du
 diagnostic — condition nécessaire à une gouvernance durable de l'alerting.
+
+\section{Bilan avant / après}
+
+La confrontation entre le système d'alerting initial, décrit au chapitre précédent, et la solution mise
+en œuvre permet de mesurer concrètement les bénéfices apportés sur chacun des points faibles
+identifiés lors du diagnostic.
+
+\begin{table}[h]
+	\centering
+	\caption{Bilan comparatif avant / après la mise en œuvre de la solution}
+	\label{tab:bilan-avant-apres}
+	\begin{tabular}{|p{0.28\textwidth}|p{0.33\textwidth}|p{0.33\textwidth}|}
+		\hline
+		\textbf{Problème identifié} & \textbf{Avant} & \textbf{Après} \\
+		\hline
+		Priorisation &
+		Aucune notion de criticité, toutes les alertes traitées de la même manière &
+		Niveau de priorité explicite porté par chaque alerte et affiché dans la notification (ex. \emph{Critical}) \\
+		\hline
+		Contexte à la réception &
+		SMS limité au nom brut de l'alarme, sans impact ni piste de diagnostic &
+		Notification enrichie : description, dashboard Grafana, runbook et chemin d'escalade \\
+		\hline
+		Déclaration des alertes &
+		Dispersée entre tags de ressources, scripts personnalisés et configuration des Lambdas, sans guideline commune &
+		Centralisée dans un module Terraform partagé, configurée par chaque équipe via des fichiers \texttt{.tfvars} versionnés \\
+		\hline
+		Pertinence des alertes &
+		Alertes majoritairement construites sur des causes techniques (CPU, mémoire) &
+		Alertes structurées selon les méthodes RED et USE, orientées symptômes et impact utilisateur \\
+		\hline
+		Ownership &
+		Aucun rattachement des alertes à une équipe responsable &
+		Tags \texttt{Team} et \texttt{Service} systématiques, routage automatique vers le bon canal Slack \\
+		\hline
+		Automatisation &
+		Fonctions Lambda opaques, sans visibilité ni contrôle des équipes &
+		Règles déclarées en code, versionnées et revues par Pull Request \\
+		\hline
+	\end{tabular}
+\end{table}
+\FloatBarrier
+
+Ce bilan illustre le changement de nature de l'alerting : d'un système automatisé mais subi, il devient
+un système automatisé et maîtrisé, dans lequel chaque équipe comprend, configure et possède ses
+propres alertes.
+

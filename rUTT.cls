@@ -339,6 +339,30 @@ boxsep=4pt, left=0pt,right=0pt,top=0pt,bottom=0pt,colframe=white,colback=lightgr
 
 \lstset{style=codestyle}
 
+% Style à fond noir, utilisé pour les extraits de configuration (Terraform/HCL)
+\lstdefinelanguage{HCL}{
+  morekeywords={ecs,apis,custom_alerts,prometheus,cpu,memory,cluster,target_4xx,target_5xx,%
+    target_response_time,error_rate,latency_p99,promql,for_duration,priority,description,%
+    dashboard_url,runbook_url},
+  sensitive=true,
+  morecomment=[l]{\#},
+  morestring=[b]",
+}
+
+\lstdefinestyle{codestyleblack}{
+  style=codestyle,
+  language=HCL,
+  backgroundcolor=\color{codeblackbg},
+  basicstyle=\ttfamily\scriptsize\color{codeblacktext},
+  keywordstyle=\color{codeblackkey}\bfseries,
+  commentstyle=\color{codeblackcomment}\itshape,
+  stringstyle=\color{codeblackstring},
+  numberstyle=\tiny\color{white!60},
+  rulecolor=\color{black},
+  frame=single,
+  framerule=0.4pt,
+}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Import custom commands
