@@ -3,8 +3,8 @@
 \section{Sujet et problématique}
 
 Le sujet de stage, tel que formulé dans la convention, part du constat que la plateforme de jeu génère
-de nombreuses alertes permettant aux personnes d'astreinte de réagir lors d'un problème sur la plateforme, mais que ce
-système souffre d'un manque d'unité et de pertinence. La problématique retenue est la suivante :
+de nombreuses alertes permettant aux personnes d'astreinte de réagir lorsqu'un problème survient, mais
+que ce système souffre d'un manque d'unité et de pertinence. La problématique retenue est la suivante :
 
 \begin{quote}
 	\emph{« Comment améliorer le système d'alerte, composé de plusieurs composants, afin d'offrir une
@@ -12,11 +12,12 @@ système souffre d'un manque d'unité et de pertinence. La problématique retenu
 	incidents ? »}
 \end{quote}
 
-Les objectifs du sujet couvrent la modernisation et la centralisation de la stack d'alerting : ingestion
-unifiée d'alertes de sources multiples (AWS CloudWatch, webhooks, EventBridge), dédoublonnage,
-normalisation, hiérarchisation par priorité, réduction de la latence et du bruit, routage conditionnel,
-notifications multi-canaux, boucles d'escalade, historisation et analytique. Ce périmètre large mêle
-des enjeux de conception, de développement, d'exploitation et de gouvernance.
+Les objectifs du sujet couvrent la modernisation et la centralisation de toute la chaîne d'alerting :
+rassembler en un seul point les alertes venant de sources variées, supprimer les doublons, hiérarchiser
+les alertes par niveau de priorité, réduire le bruit, acheminer chaque alerte vers les bonnes personnes
+selon des règles claires, notifier par plusieurs canaux (SMS, messagerie…), gérer l'escalade lorsqu'une
+alerte reste sans réponse, et conserver un historique exploitable. Ce périmètre large mêle des enjeux
+de conception, de développement, d'exploitation et de gouvernance.
 
 \section{Motivation}
 

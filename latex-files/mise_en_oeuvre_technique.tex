@@ -33,8 +33,9 @@ Prometheus, sans que les développeurs aient besoin de connaître le fonctionnem
 outils.
 
 Il propose deux types d'alertes prêtes à l'emploi, correspondant aux méthodes présentées au chapitre
-précédent : des alertes \textbf{USE} (santé des ressources machine : CPU, mémoire, erreurs 4XX/5XX,
-temps de réponse...) et des alertes \textbf{RED} (expérience utilisateur : taux d'erreur, latence...). Si un
+précédent : des alertes \textbf{USE} (santé des ressources machine : CPU, mémoire, erreurs HTTP
+4XX/5XX, temps de réponse...) et des alertes \textbf{RED} (expérience utilisateur : taux d'erreur,
+latence...). Si un
 besoin plus spécifique se présente, une équipe peut également déclarer une \textbf{alerte
 personnalisée}, en écrivant elle-même sa requête Prometheus (PromQL) ou sa configuration
 CloudWatch.
@@ -106,8 +107,10 @@ Cet exemple illustre concrètement la notification étudiée plus loin (figure~\
 priorité, la description ainsi que les liens vers le dashboard et le runbook déclarés ici sont précisément
 ceux qui apparaissent dans la notification reçue par la personne d'astreinte.
 
-Une fois leurs modifications réalisées, les développeurs soumettent une Pull Request, ce qui déclenche
-le processus de CI/CD appliquant les changements. 
+Une fois leurs modifications réalisées, les développeurs soumettent une \emph{Pull Request} — une
+proposition de modification du code, soumise à la revue de l'équipe avant d'être intégrée. Son
+acceptation déclenche le processus de CI/CD (l'automatisation qui teste puis déploie les changements),
+qui applique les nouvelles alertes.
 
 \section{La chaîne de routage des notifications}
 

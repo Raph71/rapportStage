@@ -75,8 +75,8 @@ Cette confusion entre causes et conséquences entraîne plusieurs effets néfast
 	\item une difficulté à identifier rapidement le service réellement en défaut.
 \end{itemize}
 
-Un pic de CPU, par exemple, peut être parfaitement normal lors d'un traitement batch et n'avoir aucun
-impact sur les joueurs. À l'inverse, une latence anormale sur une API critique peut passer inaperçue si
+Un pic de CPU, par exemple, peut être parfaitement normal lors d'un traitement par lots (\emph{batch})
+et n'avoir aucun impact sur les joueurs. À l'inverse, une latence anormale sur une API critique peut passer inaperçue si
 aucune alarme ne la surveille. L'efficacité globale de la réponse à incident s'en trouve dégradée,
 malgré une instrumentation technique pourtant riche.
 
@@ -96,16 +96,16 @@ Cette analyse contradictoire a guidé les choix de conception de la nouvelle sol
 		\hline
 		\textbf{Points forts} & \textbf{Limites} \\
 		\hline
-		Création automatique des alarmes, zéro intervention manuelle pour monitorer un nouveau service &
+		Création automatique des alarmes, zéro intervention manuelle pour surveiller un nouveau service &
 		Perte de contrôle sur la création des alertes, aucune visibilité des équipes sur les alertes créées \\
 		\hline
 		Les développeurs se concentrent sur leur code &
 		Chaîne trop complexe : plusieurs Lambdas avant l'envoi sur Slack \\
 		\hline
 		Configuration par tags sans toucher à l'infrastructure &
-		Si une Lambda échoue, aucun retry : manque de visibilité \\
+		Si une Lambda échoue, aucune nouvelle tentative : manque de visibilité \\
 		\hline
-		 & Beaucoup d'éléments hardcodés, code peu maintenable \\
+		 & De nombreuses valeurs écrites en dur dans le code, peu maintenable \\
 		\hline
 		 & Mêmes alertes et mêmes seuils pour tous les services \\
 		\hline

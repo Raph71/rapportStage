@@ -157,10 +157,10 @@ les autres alertes vers des canaux consultables sans urgence.
 	\end{tabular}
 \end{table}
 
-En environnement de staging, même une alerte P1 ne doit pas déranger l'astreinte : un simple
-message est envoyé sur le canal Slack dédié à l'équipe concernée. En revanche, pour les alertes P1 et
-P2 en production, il est impératif de réveiller la personne d'astreinte, en plus de l'envoi du message
-sur le canal de l'équipe impactée. Chaque équipe dispose ainsi de ses propres canaux, ce qui garantit
+En dehors de la production (environnements de développement et de pré-production), même une alerte
+P1 ne doit pas déranger l'astreinte : un simple message est envoyé sur le canal Slack dédié à l'équipe
+concernée. En revanche, pour les alertes P1 et P2 en production, il est impératif de réveiller la personne
+d'astreinte, en plus de l'envoi du message sur le canal de l'équipe impactée. Chaque équipe dispose ainsi de ses propres canaux, ce qui garantit
 que l'alerte parvient bien à la personne experte du service en cause.
 
 \section{Corrélation RED / USE et runbooks}
@@ -173,9 +173,10 @@ une alerte isolée, elle dispose immédiatement des pistes de cause. Par exemple
 l'alerte intègre les warnings susceptibles d'en être la cause, comme un ralentissement dans la lecture
 d'une base de données.
 
-Chaque alerte est en outre associée à un runbook comprenant un lien direct vers le dashboard Grafana
-du service concerné. Ce tableau de bord offre une visualisation détaillée permettant d'identifier
-rapidement la ou les méthodes problématiques de l'API. Le runbook constitue ainsi un point d'entrée
+Chaque alerte est en outre associée à un runbook — une fiche décrivant la marche à suivre pour
+diagnostiquer et résoudre le problème — comprenant un lien direct vers le tableau de bord (dashboard)
+Grafana du service concerné. Ce tableau de bord offre une visualisation détaillée permettant d'identifier
+rapidement la ou les fonctions problématiques du service. Le runbook constitue ainsi un point d'entrée
 unique pour comprendre l'alerte et engager la résolution, sans perte de temps en recherche
 d'informations.
 
