@@ -86,13 +86,13 @@ et les liens (dashboard, runbook) qui apparaîtront dans la notification finale.
 custom_alerts = {
   "vpn_sogei_contract_limit" = {
     prometheus = {
-      promql       = "node_nf_conntrack_entries{instance=~"vpn-sogei.*"} / node_nf_conntrack_entries_limit{instance=~"vpn-sogei.*"} * 100 > 80"
+      promql       = "node_nf_conntrack_entries{instance=~'vpn-sogei.*'}/node_nf_conntrack_entries_limit{instance=~'vpn-sogei.*'}*100>80"
       for_duration = "5m"
     }
     priority      = "Critical"
-    description   = "Conntrack entries are above 80% of the limit for the last 5 minutes on {{ $labels.instance }}"
-    dashboard_url = "https://grafana.tools.winamax.fr/d/anmmkz9/infra-vpn-sogei?orgId=1&from=now-24h&to=now&timezone=browser&var-prometheus=cdxhb0hdeayo0f&var-scrapper_svc_name=sogei-vpn-exporter&var-ike=sogei&var-child=sogei_child&refresh=1m&viewPanel=panel-21"
-    runbook_url   = "https://backstage.tools.winamax.fr/docs/infra/domain/infra/regulation/IT/"
+    description   = "Conntrack entries are above 80% of the limit"
+    dashboard_url = "DASHBOARD_URL"
+    runbook_url   = "RUNBOOK_URL"
   }
 }
 \end{lstlisting}

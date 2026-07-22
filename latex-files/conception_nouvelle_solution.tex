@@ -93,7 +93,7 @@ de la réalité de son service.
 
 \section{Les niveaux de criticité}
 
-Afin de ne solliciter les équipes d'astreinte qu'en cas d'incident réellement critique, un niveau de
+Afin de ne solliciter les équipes d'astreinte qu'en cas de problèmes réellement critique, un niveau de
 criticité est attribué à chaque alerte, sous forme de tags ou de labels sur les règles Prometheus. Quatre
 niveaux ont été définis.
 
@@ -135,15 +135,15 @@ les autres alertes vers des canaux consultables sans urgence.
 		\hline
 		\textbf{Priorité} & \textbf{Environnement} & \textbf{Canal principal} \\
 		\hline
-		P1 -- Critical & PROD & SMS + Slack (\texttt{\#alerts-\$\{TEAM\}-infra-\$\{ENV\}}) \\
+		P1 -- Critical & PROD & SMS + Slack (\texttt{\#alerts-\$\{TEAM\}-\$\{ENV\}}) \\
 		\hline
-		P2 -- High & PROD & SMS + Slack (\texttt{\#alerts-\$\{TEAM\}-infra-\$\{ENV\}}) \\
+		P2 -- High & PROD & SMS + Slack (\texttt{\#alerts-\$\{TEAM\}-\$\{ENV\}}) \\
 		\hline
-		P3 -- Warning & PROD & Slack (\texttt{\#alerts-\$\{TEAM\}-infra-\$\{ENV\}}) \\
+		P3 -- Warning & PROD & Slack (\texttt{\#alerts-\$\{TEAM\}-\$\{ENV\}}) \\
 		\hline
-		Toutes & DEV / PRELIVE & Slack (\texttt{\#\$\{TEAM\}-infra-\$\{ENV\}}) \\
+		Toutes & DEV / PRELIVE & Slack (\texttt{\#\$\{TEAM\}-\$\{ENV\}}) \\
 		\hline
-		Logs & Tous & Slack (\texttt{\#\$\{TEAM\}-infra-logs-\$\{ENV\}}) \\
+		Logs & Tous & Slack (\texttt{\#\$\{TEAM\}-logs-\$\{ENV\}}) \\
 		\hline
 	\end{tabular}
 \end{table}
