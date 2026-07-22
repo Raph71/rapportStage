@@ -67,12 +67,21 @@ indicateurs techniques collectés par CloudWatch — par exemple une alarme du t
 \texttt{CPUUtilization > 80 \%} pendant cinq minutes. Ces signaux décrivent l'état des machines, mais
 pas ce que vivent réellement les joueurs.
 
-Or la plateforme expose déjà un ensemble riche de métriques applicatives, produites par un middleware
-JSON-RPC instrumenté avec OpenTelemetry, puis collectées et stockées dans AMP (Amazon Managed
-Service for Prometheus). Ces métriques n'étaient pourtant pas exploitées pour l'alerting. Les brancher
-à la chaîne d'alerte constitue le cœur de ma contribution : elles permettent d'alerter au niveau du
-métier — le comportement des services tel que les joueurs le perçoivent — et non plus seulement au
-niveau des ressources techniques.
+Or la plateforme dispose déjà d'une source riche d'informations applicatives. Les services de Winamax
+communiquent entre eux via des API au format JSON-RPC : un protocole simple où un service en appelle
+un autre en lui envoyant un message structuré en JSON (le format texte standard d'échange de données
+sur le web). Toutes ces requêtes traversent un \emph{middleware} — une couche logicielle commune,
+placée sur le chemin de chaque appel, qui les traite de façon transparente sans que chaque équipe ait à
+la réécrire.
+
+Ce middleware est \emph{instrumenté} avec OpenTelemetry, un standard d'observabilité : à chaque
+requête, il produit automatiquement de la télémétrie qui décrit ce qui s'est passé. Cette instrumentation
+n'est pas, en soi, une métrique ; c'est à partir d'elle que sont ensuite calculées des métriques
+applicatives — nombre de requêtes, taux d'erreur, temps de réponse — qui sont exportées vers AMP
+(Amazon Managed Service for Prometheus). Ces métriques existaient donc déjà, mais n'étaient pas
+exploitées pour l'alerting. Les brancher à la chaîne d'alerte constitue le cœur de ma contribution : elles
+permettent d'alerter au niveau du métier — le comportement des services tel que les joueurs le
+perçoivent — et non plus seulement au niveau des ressources techniques.
 
 Cette bascule est rendue possible par Prometheus et son langage de requêtes, PromQL. Là où
 CloudWatch se limite pour l'essentiel à des seuils sur des métriques d'infrastructure, PromQL permet

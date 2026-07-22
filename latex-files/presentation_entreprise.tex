@@ -72,8 +72,12 @@ responsable du service réellement impacté, et non diffuser une alerte généri
 
 L'équipe Infrastructure est une équipe transverse et essentielle de Winamax. En lien avec le CTO, elle
 décide et met en œuvre l'orientation technologique de l'entreprise, comme la migration vers AWS
-décidée en 2018. Sa philosophie consiste à s'appuyer au maximum sur les services gérés fournis par
-AWS et à généraliser l'Infrastructure as Code (IaC), notamment via Terraform. 
+décidée en 2018. Sa démarche relève de l'ingénierie de la fiabilité (\emph{Site Reliability Engineering},
+ou SRE) : elle traite la fiabilité de la plateforme comme un problème d'ingénierie logicielle. Tout y est
+décrit en code et versionné — l'Infrastructure as Code (IaC), généralisée via Terraform —, automatisé,
+et surtout mesuré grâce à une observabilité poussée. Celle-ci repose sur les trois piliers du SRE : les
+métriques (Prometheus), les logs et les traces distribuées (OpenTelemetry et Jaeger), l'ensemble étant
+visualisé dans Grafana.
 
 L'équipe est responsable à la fois de la mise à disposition des différents environnements, de
 l'accompagnement des équipes dans le déploiement de leurs services et de la maintenance de ces
@@ -85,12 +89,12 @@ derniers. Elle prend notamment en charge plusieurs points critiques et communs �
 	\item Adressage des différentes machines et conteneurs, et filtrage des flux réseau entre les services ;
 	\item Gestion de l'API Gateway (Kong) ;
 	\item Déploiement des outils communs : Grafana, Prometheus, Jaeger ;
-	\item Gestion de la stack d'observabilité ;
+	\item Gestion de la stack d'observabilité : collecte des métriques, des logs et des traces distribuées ;
 	\item Gestion des datastores pour les équipes.
 \end{itemize}
 
 Enfin, l'équipe supervise la distribution des alertes vers les différentes équipes d'astreinte et assure
-elle-même une astreinte, afin de pouvoir intervenir en cas de problème sur la plateforme. C'est
+elle-même une astreinte : la réponse aux incidents fait partie intégrante du métier de SRE. C'est
 précisément dans ce périmètre que s'inscrit le sujet de mon stage : améliorer la chaîne qui relie la
 détection d'un problème sur la plateforme à la notification de la bonne personne.
 

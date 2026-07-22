@@ -100,17 +100,43 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 		\hline
 		Alertmanager & Composant de l'écosystème Prometheus, managé par AMP, qui reçoit les alertes déclenchées et les transmet à incident.io. \\
 		\hline
+		CloudTrail & Service AWS qui journalise (audit) toutes les actions réalisées sur un compte AWS. \\
+		\hline
+		CloudWatch & Service de surveillance d'AWS : il collecte des métriques et des logs d'infrastructure et déclenche des alarmes. \\
+		\hline
+		EC2 / Fargate & Deux façons d'exécuter des charges sur AWS : EC2 fournit des serveurs virtuels, Fargate exécute des conteneurs sans serveur à gérer. \\
+		\hline
+		ECS & Elastic Container Service -- service AWS qui héberge et orchestre les conteneurs applicatifs. \\
+		\hline
 		EMF & Embedded Metric Format -- format permettant de générer des métriques CloudWatch à partir de logs structurés. \\
+		\hline
+		EventBridge & Bus d'événements d'AWS, qui déclenche des traitements en réaction à des événements (par exemple un changement de service). \\
 		\hline
 		IaC & Infrastructure as Code -- gestion de l'infrastructure via du code versionné (Terraform, CloudFormation...). \\
 		\hline
 		incident.io & Plateforme de gestion d'incidents et d'astreinte assurant le regroupement (grouping), le routage et l'escalade des alertes vers les bonnes personnes. \\
 		\hline
+		Jaeger & Outil de visualisation des traces distribuées, permettant de suivre le parcours d'une requête à travers les services. \\
+		\hline
+		JSON-RPC & Protocole d'appel entre services : un service en appelle un autre en lui envoyant un message structuré au format JSON. \\
+		\hline
+		Lambda & Service AWS permettant d'exécuter de petits programmes à la demande, sans serveur à provisionner ni gérer. \\
+		\hline
+		Middleware & Couche logicielle commune, placée sur le chemin de chaque requête, qui la traite de façon transparente (par exemple pour la mesurer). \\
+		\hline
 		MTTD / MTTR & Mean Time To Detect / Mean Time To Repair -- temps moyens de détection et de réparation d'un incident. \\
+		\hline
+		OpenTelemetry (OTel) & Standard d'observabilité servant à instrumenter le code pour produire de la télémétrie (traces et métriques). \\
 		\hline
 		Promrule & Fichier de configuration lu par Prometheus définissant une règle d'alerte (expression PromQL, durée, labels). \\
 		\hline
 		RED & Rate, Errors, Duration -- méthode d'observabilité orientée expérience utilisateur (métriques d'application). \\
+		\hline
+		SNS & Simple Notification Service -- service de messagerie d'AWS qui diffuse des messages à des abonnés. \\
+		\hline
+		SQS & Simple Queue Service -- service AWS de file d'attente qui stocke des messages en attendant leur traitement. \\
+		\hline
+		Target group (ALB) & Groupe de cibles derrière un répartiteur de charge (Application Load Balancer) ; ses métriques (codes 4XX/5XX, hôtes en bonne santé) servent à surveiller un service. \\
 		\hline
 		USE & Utilization, Saturation, Errors -- méthode d'observabilité orientée ressources (métriques d'infrastructure). \\
 		\hline

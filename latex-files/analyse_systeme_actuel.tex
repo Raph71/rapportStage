@@ -2,13 +2,16 @@
 
 \section{Architecture actuelle de la chaîne d'alerting}
 
-L'architecture étudiée repose sur un ensemble de composants AWS permettant de créer, maintenir
-et diffuser des alarmes techniques autour des services déployés sur les clusters ECS. Le
-fonctionnement observé peut se résumer ainsi : les changements survenant sur les services (création,
-mise à jour, suppression) sont détectés via CloudTrail et EventBridge ; des fonctions Lambda
-orchestrent alors la création ou la suppression d'alarmes CloudWatch ; les alarmes déclenchées
-produisent des notifications qui, via un topic SNS puis une chaîne de traitement, aboutissent sur les
-canaux de diffusion, principalement Slack.
+L'architecture étudiée repose sur un ensemble de services AWS. Les applications de Winamax
+s'exécutent dans des conteneurs regroupés au sein de clusters ECS (\emph{Elastic Container Service}, le
+service d'AWS qui héberge et orchestre les conteneurs). Le fonctionnement observé peut se résumer
+ainsi : chaque changement sur un service (création, mise à jour, suppression) est enregistré par
+CloudTrail — le journal d'audit qui trace toutes les actions réalisées sur le compte AWS — puis relayé
+par EventBridge, le bus d'événements qui déclenche des traitements en réaction à ces changements. Ces
+événements exécutent alors des fonctions Lambda (de petits programmes lancés à la demande, sans
+serveur à gérer) qui créent ou suppriment des alarmes dans CloudWatch, l'outil de surveillance d'AWS.
+Enfin, les alarmes déclenchées émettent des notifications qui, via un service de messagerie (un topic
+SNS puis une file d'attente SQS), aboutissent sur les canaux de diffusion, principalement Slack.
 
 \begin{figure}[h]
 	\centering

@@ -6,11 +6,16 @@ La solution que j'ai conçue s'appuie sur une chaîne d'alerting entièrement pi
 métriques d'infrastructure sont surveillées via CloudWatch, tandis que les métriques d'application sont
 collectées par les collecteurs OpenTelemetry et stockées dans AMP. 
 Les règles d'alerte, décrites en Terraform, sont déployées automatiquement sous forme d'alarmes
-dans CloudWatch et de règles Prometheus dans AMP. Lorsqu'une alerte se
-déclenche, elle est transmise à incident.io — depuis AMP via son Alertmanager
-managé, depuis CloudWatch via un topic SNS.
-C'est incident.io qui prend alors en charge le regroupement (grouping), le routage et l'escalade des alertes, avant de notifier les bonnes personnes
-sur le canal le plus adapté (Slack, SMS, appel, notification push ou e-mail).
+dans CloudWatch et de règles Prometheus dans AMP. Lorsqu'une alerte se déclenche, elle est transmise
+à incident.io, les deux sources suivant un chemin légèrement différent. Depuis AMP, l'Alertmanager
+managé transmet directement l'alerte, déjà porteuse de tout son contexte (priorité, description, liens)
+grâce aux \emph{labels} de la règle Prometheus. Depuis CloudWatch, l'alarme — bien plus sommaire —
+est d'abord publiée sur un topic SNS, puis une fonction Lambda l'enrichit du même contexte avant de la
+transmettre à incident.io, afin que les deux sources produisent des notifications homogènes.
+
+C'est ensuite incident.io qui prend en charge le regroupement (grouping), le routage et l'escalade des
+alertes, avant de notifier les bonnes personnes sur le canal le plus adapté (Slack, SMS, appel,
+notification push ou e-mail).
 
 \begin{figure}[h]
 	\centering
