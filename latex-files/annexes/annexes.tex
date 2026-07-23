@@ -80,12 +80,6 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 	\end{tabular}
 \end{table}
 
-\subsection*{B.3 Convention de nommage des alertes}
-
-\begin{center}
-	\texttt{alerts/\$\{Family\}/\$\{Team\}/\$\{Service\}/\$\{AlarmName\}}
-\end{center}
-
 \section{Annexe C — Lexique}
 
 \begin{longtable}{|p{0.2\textwidth}|p{0.65\textwidth}|}
@@ -111,13 +105,13 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 
 		AMP & Amazon Managed Service for Prometheus -- service géré de stockage des métriques Prometheus. \\
 		\hline
-		Alertmanager & Composant de l'écosystème Prometheus, managé par AMP, qui reçoit les alertes déclenchées et les transmet à incident.io. \\
+		Alertmanager & Composant de l'écosystème Prometheus, managé par AMP, qui reçoit et redirige les alertes déclenchées \\
 		\hline
-		AWS & Amazon Web Services -- fournisseur de cloud sur lequel est hébergée l'infrastructure de Winamax (calcul, réseau, stockage, messagerie...). \\
+		AWS & Amazon Web Services -- fournisseur de cloud sur lequel est hébergée l'infrastructure de Winamax. \\
 		\hline
 		CI/CD & Intégration et déploiement continus -- chaîne d'automatisation qui teste puis met en production les changements de code. \\
 		\hline
-		CloudTrail & Service AWS qui journalise (audit) toutes les actions réalisées sur un compte AWS. \\
+		CloudTrail & Service AWS qui journalise toutes les actions réalisées sur un compte AWS. \\
 		\hline
 		CloudWatch & Service de surveillance d'AWS : il collecte des métriques et des logs d'infrastructure et déclenche des alarmes. \\
 		\hline
@@ -135,7 +129,7 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 		\hline
 		IaC & Infrastructure as Code -- gestion de l'infrastructure via du code versionné (Terraform, CloudFormation...). \\
 		\hline
-		incident.io & Plateforme de gestion d'incidents et d'astreinte assurant le regroupement (grouping), le routage et l'escalade des alertes vers les bonnes personnes. \\
+		incident.io & Plateforme de gestion d'incidents et d'astreinte assurant le regroupement, le routage et l'escalade des alertes vers les bonnes personnes. \\
 		\hline
 		Jaeger & Outil de visualisation des traces distribuées, permettant de suivre le parcours d'une requête à travers les services. \\
 		\hline
@@ -151,15 +145,15 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 		\hline
 		MTTD / MTTR & Mean Time To Detect / Mean Time To Repair -- temps moyens de détection et de réparation d'un incident. \\
 		\hline
-		OpenTelemetry (OTel) & Standard d'observabilité servant à instrumenter le code pour produire de la télémétrie (traces et métriques). \\
+		OpenTelemetry & Standard d'observabilité servant à instrumenter le code pour produire de la télémétrie (traces, métriques, logs). \\
 		\hline
 		Prometheus & Système open-source de collecte et de requêtage de métriques, utilisé ici au travers d'AMP pour l'alerting applicatif. \\
 		\hline
-		Promrule & Fichier de configuration lu par Prometheus définissant une règle d'alerte (expression PromQL, durée, labels). \\
+		Promrule & Fichier de configuration lu par Prometheus définissant une règle d'alerte . \\
 		\hline
 		Pull Request & Proposition de modification du code, soumise à la revue de l'équipe avant d'être intégrée. \\
 		\hline
-		RED & Rate, Errors, Duration -- méthode d'observabilité orientée expérience utilisateur (métriques d'application). \\
+		RED & Rate, Errors, Duration -- méthode d'observabilité orientée expérience utilisateur. \\
 		\hline
 		Runbook & Fiche décrivant la marche à suivre pour diagnostiquer et résoudre un type d'incident donné. \\
 		\hline
@@ -167,7 +161,7 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 		\hline
 		SQS & Simple Queue Service -- service AWS de file d'attente qui stocke des messages en attendant leur traitement. \\
 		\hline
-		Target group (ALB) & Groupe de cibles derrière un répartiteur de charge (Application Load Balancer) ; ses métriques (codes 4XX/5XX, hôtes en bonne santé) servent à surveiller un service. \\
+		TargetGroup & Groupe de cibles derrière un répartiteur de charge (Application Load Balancer). \\
 		\hline
 		Traces & Suivi du parcours d'une requête à travers les différents services d'une architecture distribuée, découpé en étapes (spans), utilisé pour le diagnostic. \\
 		\hline

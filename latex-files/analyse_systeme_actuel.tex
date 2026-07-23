@@ -3,15 +3,15 @@
 \section{Architecture actuelle de la chaîne d'alerting}
 
 L'architecture étudiée repose sur un ensemble de services \lexique{AWS}. Les applications de Winamax
-s'exécutent dans des conteneurs regroupés au sein de clusters ECS (\emph{Elastic Container Service}, le
+s'exécutent dans des conteneurs regroupés au sein de clusters \lexique{ECS} (\emph{Elastic Container Service}, le
 service d'\lexique{AWS} qui héberge et orchestre les conteneurs). Le fonctionnement observé peut se résumer
 ainsi : chaque changement sur un service (création, mise à jour, suppression) est enregistré par
 \lexique{CloudTrail} — le journal d'audit qui trace toutes les actions réalisées sur le compte \lexique{AWS} — puis relayé
 par \lexique{EventBridge}, le bus d'événements qui déclenche des traitements en réaction à ces changements. Ces
 événements exécutent alors des fonctions \lexique{Lambda} (de petits programmes lancés à la demande, sans
-serveur à gérer) qui créent ou suppriment des alarmes dans CloudWatch, l'outil de surveillance d'\lexique{AWS}.
+serveur à gérer) qui créent ou suppriment des alarmes dans \lexique{CloudWatch}, l'outil de surveillance d'\lexique{AWS}.
 Enfin, les alarmes déclenchées émettent des notifications qui, via un service de messagerie (un topic
-SNS puis une file d'attente SQS), aboutissent sur les canaux de diffusion, principalement Slack.
+\lexique{SNS} puis une file d'attente \lexique{SQS}), aboutissent sur les canaux de diffusion, principalement Slack.
 
 \begin{figure}[h]
 	\centering
@@ -54,7 +54,7 @@ appréhender dans son ensemble.
 \end{table}
 \FloatBarrier
 
-Le tag appliqué sur les target groups illustre bien la logique de configuration : chaque type d'alarme
+Le tag appliqué sur les \lexique{target groups} illustre bien la logique de configuration : chaque type d'alarme
 (par exemple \texttt{HTTPCode\_Target\_5XX\_Count} ou \texttt{UnHealthyHostCount}) dispose d'un tag
 d'activation booléen et d'un tag de seuil. Ce mécanisme, souple en apparence, présente en réalité de
 fortes limites lorsqu'il s'agit d'introduire de la criticité ou d'harmoniser les pratiques entre équipes.
@@ -113,8 +113,6 @@ Cette analyse contradictoire a guidé les choix de conception de la nouvelle sol
 		\hline
 		 & Un changement de seuil ou de nom impose de redéployer tous les services \\
 		\hline
-		 & Pas d'ownership des alertes par service \\
-		\hline
 	\end{tabular}
 \end{table}
 \FloatBarrier
@@ -122,7 +120,7 @@ Cette analyse contradictoire a guidé les choix de conception de la nouvelle sol
 \section{Réception des alertes}
 
 Au-delà de la construction des alarmes, j'ai également étudié la manière dont les alertes parviennent
-concrètement aux personnes d'astreinte. Aujourd'hui, lorsqu'une alarme CloudWatch jugée critique se
+concrètement aux personnes d'astreinte. Aujourd'hui, lorsqu'une alarme \lexique{CloudWatch} jugée critique se
 déclenche, elle provoque l'envoi d'un SMS à la personne d'astreinte, en complément de la notification
 postée sur le canal Slack de l'équipe concernée.
 

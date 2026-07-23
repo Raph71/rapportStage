@@ -11,14 +11,14 @@ de conception ont été retenues :
 \begin{itemize}
 	\item privilégier les signaux liés aux conséquences d'une panne plutôt qu'à ses seules causes techniques ;
 	\item expliciter le niveau de criticité de chaque alerte ;
-	\item associer chaque alerte à un périmètre de responsabilité identifié (service, équipe) ;
+	\item associer chaque alerte à un périmètre de responsabilité identifié ;
 	\item ajouter plus de contexte dans les notifications, afin de faciliter le diagnostic initial et d'accélérer la résolution.
 \end{itemize}
 
 \section{Deux points de vue complémentaires : les méthodes RED et USE}
 
-Pour structurer la surveillance, j'ai retenu deux méthodes reconnues de l'ingénierie SRE, en les appliquant à des types de \lexique{métriques} distincts. La méthode USE
-s'applique aux \lexique{métriques} d'infrastructure et adopte une vue « côté machine », tandis que la méthode RED s'applique aux \lexique{métriques} d'application et adopte une vue « côté client ».
+Pour structurer la surveillance, j'ai retenu deux méthodes reconnues de l'ingénierie \lexique{SRE}, en les appliquant à des types de \lexique{métriques} distincts. 
+La méthode \lexique{USE} s'applique aux \lexique{métriques} d'infrastructure et adopte une vue « côté machine », tandis que la méthode \lexique{RED} s'applique aux \lexique{métriques} d'application et adopte une vue « côté client ».
 
 \begin{figure}[h]
 	\centering
@@ -30,7 +30,7 @@ s'applique aux \lexique{métriques} d'infrastructure et adopte une vue « côt�
 
 \subsection{La méthode USE (vue côté machine)}
 
-La méthode USE évalue la santé des composants sous-jacents à travers trois dimensions :
+La méthode \lexique{USE} évalue la santé des composants sous-jacents à travers trois dimensions :
 
 \begin{itemize}
 	\item \textbf{Utilization} (Utilisation) : le pourcentage de temps pendant lequel une ressource est occupée (par exemple CPU ou RAM à 80 \%).
@@ -43,7 +43,7 @@ fassent tomber le service. Elle répond à la question « pourquoi » du point d
 
 \subsection{La méthode RED (vue côté client)}
 
-La méthode RED se concentre sur les requêtes applicatives, au plus près de
+La méthode \lexique{RED} se concentre sur les requêtes applicatives, au plus près de
 l'expérience utilisateur, à travers trois dimensions :
 
 \begin{itemize}
@@ -82,13 +82,12 @@ exploitées pour l'alerting. Les brancher à la chaîne d'alerte constitue le c�
 permettent d'alerter au niveau du métier — le comportement des services tel que les joueurs le
 perçoivent — et non plus seulement au niveau des ressources techniques.
 
-Cette bascule est rendue possible par \lexique{Prometheus} et son langage de requêtes, PromQL. Là où
-CloudWatch se limite pour l'essentiel à des seuils sur des \lexique{métriques} d'infrastructure, PromQL permet
+Cette bascule est rendue possible par \lexique{Prometheus} et son langage de requêtes, PromQL. Il permet
 d'exprimer des conditions fines et directement liées à l'expérience utilisateur. Sur cette base, j'ai
 standardisé trois \lexique{métriques} appliquées aux API de la plateforme :
 
 \begin{itemize}
-	\item \textbf{Latency P99} : le temps de réponse maximum pour 99 \% des requêtes ;
+	\item \textbf{Latency P99} : mesure du temps de réponse sous laquelle s'exécutent 99 \% de vos requêtes ;
 	\item \textbf{Error Rate} : la proportion de requêtes en échec, calculée à partir du statut \lexique{JSON-RPC} renvoyé par chaque service ;
 	\item \textbf{Service Down} : la chute anormale du volume de requêtes reçues par un service, signe qu'il ne répond plus.
 \end{itemize}
@@ -161,17 +160,16 @@ que l'alerte parvient bien à la personne experte du service en cause.
 
 \section{Corrélation RED / USE et runbooks}
 
-Afin d'améliorer le temps moyen de réparation (MTTR), les alertes RED de criticité « Critical » ou
-« High » (les conséquences) sont associées aux alertes USE « Warning » du même service (les causes
-possibles). Cette corrélation facilite le diagnostic pour la personne d'astreinte : plutôt que de recevoir
-une alerte isolée, elle dispose immédiatement des pistes de cause. Par exemple, si le service
+Afin d'améliorer le temps moyen de réparation (MTTR), les alertes \lexique{RED} de criticité « Critical » ou
+« High » sont associées aux alertes \lexique{USE} « Warning » du même service. Cette corrélation facilite le diagnostic pour la personne d'astreinte : plutôt que de recevoir
+une alerte isolée, elle dispose immédiatement des pistes de cause possibles. Par exemple, si le service
 \texttt{betting-api} signale un dépassement du seuil de latence P99 pendant plus de cinq minutes,
 l'alerte intègre les warnings susceptibles d'en être la cause, comme un ralentissement dans la lecture
 d'une base de données.
 
-Chaque alerte est en outre associée à un runbook — une fiche décrivant la marche à suivre pour
-diagnostiquer et résoudre le problème — et à un lien direct vers le tableau de bord (dashboard)
-Grafana du service concerné. Ce tableau de bord offre une visualisation détaillée permettant d'identifier
+En plus de cela, chaque alerte doit être associée à un runbook — une fiche décrivant la marche à suivre pour
+diagnostiquer et résoudre le problème — et à un lien direct vers un \lexique{dashboard}
+Grafana du service concerné. Ce \lexique{dashboard} offre une visualisation détaillée permettant d'identifier
 rapidement la ou les fonctions problématiques du service. Le runbook constitue ainsi un point d'entrée
 unique pour comprendre l'alerte et engager la résolution, sans perte de temps en recherche
 d'informations.

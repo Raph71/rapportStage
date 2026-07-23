@@ -3,13 +3,13 @@
 \section{Architecture cible}
 
 La solution que j'ai conçue s'appuie sur une chaîne d'alerting entièrement pilotée par le code. Les
-\lexique{métriques} d'infrastructure sont surveillées via CloudWatch, tandis que les \lexique{métriques} d'application sont
+\lexique{métriques} d'infrastructure sont principalement surveillées via CloudWatch, tandis que les \lexique{métriques} d'application sont
 collectées par les collecteurs \lexique{OpenTelemetry} et stockées dans AMP. 
 Les règles d'alerte, décrites en Terraform, sont déployées automatiquement sous forme d'alarmes
-dans CloudWatch et de règles \lexique{Prometheus} dans AMP. Lorsqu'une alerte se déclenche, elle est transmise
-à incident.io, les deux sources suivant un chemin légèrement différent. Depuis AMP, l'Alertmanager
+dans \lexique{CloudWatch} et de règles \lexique{Prometheus} dans AMP. Lorsqu'une alerte se déclenche, elle est transmise
+à incident.io. Les deux sources suivent un chemin légèrement différent, depuis AMP, l'Alertmanager
 managé transmet directement l'alerte, déjà porteuse de tout son contexte (priorité, description, liens)
-grâce aux \emph{labels} de la règle \lexique{Prometheus}. Depuis CloudWatch, l'alarme — bien plus sommaire —
+grâce aux \emph{labels} de la règle \lexique{Prometheus}. Depuis \lexique{CloudWatch}, l'alarme — bien plus sommaire —
 est d'abord publiée sur un topic SNS, puis une fonction \lexique{Lambda} l'enrichit du même contexte avant de la
 transmettre à incident.io, afin que les deux sources produisent des notifications homogènes.
 
@@ -27,21 +27,20 @@ notification push ou e-mail).
 
 \section{Le module Terraform et les fichiers de configuration}
 
-Pour industrialiser la création des alertes, j'ai développé un module Terraform unique, réutilisable
-par toutes les équipes. Ce module sait créer des alertes aussi bien dans CloudWatch que dans
-\lexique{Prometheus}, sans que les développeurs aient besoin de connaître le fonctionnement interne de ces
+Pour industrialiser la création des alertes et versionner leur configuration pour tous redéployer en cas de besoin, j'ai développé un \lexique{module Terraform} unique, réutilisable
+par toutes les équipes. Ce module sait créer des alertes aussi bien dans \lexique{CloudWatch} que dans
+\lexique{AMP}, sans que les développeurs aient besoin de connaître le fonctionnement interne de ces
 outils.
 
-Il propose deux types d'alertes prêtes à l'emploi, correspondant aux méthodes présentées au chapitre
+Il propose des alertes par défauts directement utilisables par les développeurs, correspondant aux méthodes présentées au chapitre
 précédent : des alertes \textbf{USE} (santé des ressources machine : CPU, mémoire, erreurs HTTP
 4XX/5XX, temps de réponse...) et des alertes \textbf{RED} (expérience utilisateur : taux d'erreur,
-latence...). Si un
-besoin plus spécifique se présente, une équipe peut également déclarer une \textbf{alerte
-personnalisée}, en écrivant elle-même sa requête \lexique{Prometheus} (PromQL) ou sa configuration
+latence...). Si un besoin plus spécifique se présente, une équipe peut également déclarer une \textbf{alerte
+personnalisée}, en écrivant elle-même sa requête \lexique{Prometheus} ou sa configuration
 CloudWatch.
 
 Chaque équipe possède son propre dossier dans le dépôt du module et y déclare ses alertes, dans le
-fichier correspondant à l'environnement concerné (production, développement ou pré-production).
+fichier correspondant à l'environnement concerné (production, développement ou prélive).
 Cette organisation centralise la déclaration des alertes à un seul endroit, alors qu'elle était auparavant
 dispersée entre plusieurs mécanismes.
 
@@ -61,6 +60,23 @@ ecs = {
       target_4xx           = {}
       target_5xx           = {}
       target_response_time = {}
+    }
+  }
+}
+\end{lstlisting}
+
+Pour changer les seuils par défaut, il suffit d'ajouter pour l'alerte concernée un champ \texttt{threshold} avec la valeur souhaitée. 
+De même, pour modifier le niveau de priorité, il suffit d'ajouter un champ \texttt{priority} avec la valeur souhaitée.
+
+\begin{lstlisting}[style=codestyleblack, language=HCL, caption={Activation d'alertes USE avec seuils et priorités personnalisés sur un service ECS}, label={lst:use-example-custom}]
+ecs = {
+  "clu-betting-api" = {
+    "account-options" = {
+      cpu                  = { threshold = 80, priority = "High" }
+      memory               = { threshold = 80, priority = "High" }
+      target_4xx           = { threshold = 100, priority = "Critical" }
+      target_5xx           = { threshold = 50, priority = "Critical" }
+      target_response_time = { threshold = 500, priority = "High" }
     }
   }
 }
@@ -109,8 +125,7 @@ ceux qui apparaissent dans la notification reçue par la personne d'astreinte.
 
 Une fois leurs modifications réalisées, les développeurs soumettent une \emph{Pull Request} — une
 proposition de modification du code, soumise à la revue de l'équipe avant d'être intégrée. Son
-acceptation déclenche le processus de CI/CD (l'automatisation qui teste puis déploie les changements),
-qui applique les nouvelles alertes.
+acceptation déclenche le processus de \lexique{CI/CD}, qui applique les nouvelles alertes.
 
 \section{La chaîne de routage des notifications}
 
@@ -121,7 +136,7 @@ applique une logique de notification complète. Nous avons retenu cet outil car 
 	\item \textbf{regrouper} les alertes liées à un même service afin d'éviter la submersion (grouping) ;
 	\item \textbf{router} chaque alerte vers les bonnes personnes selon le service impacté, sa criticité et l'environnement ;
 	\item \textbf{escalader} automatiquement vers le niveau d'astreinte supérieur toute alerte critique non prise en charge dans les temps ;
-	\item \textbf{mettre en sourdine} (silencing) les notifications pendant les maintenances planifiées ;
+	\item \textbf{mettre en sourdine} les notifications pendant les maintenances planifiées ;
 	\item \textbf{enrichir} chaque notification d'un contexte immédiatement exploitable : niveau de priorité, description de l'alerte, lien vers le runbook et vers le dashboard Grafana du service.
 \end{itemize}
 
@@ -131,7 +146,7 @@ priorisée et directement actionnable par la personne d'astreinte.
 \section{Ce que reçoivent désormais les développeurs}
 
 Concrètement, lorsqu'une alerte se déclenche aujourd'hui, la personne d'astreinte reçoit une
-notification push envoyée par incident.io directement sur son téléphone, comme illustré à la
+notification push envoyée par \lexique{incident.io} directement sur son téléphone, comme illustré à la
 figure~\ref{fig:incident-sms}.
 
 \begin{figure}[h]
@@ -172,20 +187,6 @@ afin de limiter les risques de régression et de faciliter l'appropriation par l
 
 Cette trajectoire prudente instaure une confiance progressive dans la nouvelle solution et évite tout
 angle mort pendant la bascule.
-
-\section{Ownership et responsabilisation des équipes}
-
-Au-delà de l'aspect technique, la solution corrige l'une des limites majeures du système existant :
-l'absence d'ownership des alertes par service. Chaque alerte porte désormais un tag \texttt{Team} et
-un tag \texttt{Service} qui l'associent sans ambiguïté à l'équipe responsable, et le routage s'appuie sur
-ces tags pour diriger la notification vers le canal Slack de cette équipe plutôt que vers un canal
-générique.
-
-Cette responsabilisation passe concrètement par le mécanisme de Pull Request : les équipes ajustent
-elles-mêmes, dans leur fichier \texttt{.tfvars}, les seuils et l'activation des alertes de leur service, sous
-revue de l'équipe Infrastructure. Chaque alerte critique est en outre associée à un runbook et à un
-dashboard Grafana propres au service, ce qui place l'équipe propriétaire en première ligne du
-diagnostic — condition nécessaire à une gouvernance durable de l'alerting.
 
 \section{Bilan avant / après}
 
