@@ -59,7 +59,7 @@ technique du site. Le pôle technique est ensuite subdivisé en différentes éq
 	\item \textbf{l’équipe Opérateur} : chargée du cycle de vie des joueurs, de l’inscription à la clôture des comptes. Elle gère également les dépôts, les bonus et assure la conformité avec les régulations de l’ANJ ou de la DGOJ.
 	\item \textbf{l’équipe Core} : mutualise les briques logicielles communes à plusieurs équipes. Elle gère par exemple l’authentification, le système de chat, l’analyse des pièces d’identité, la géolocalisation et l’envoi de SMS.
 	\item \textbf{l’équipe Sécurité} : accompagne les autres équipes dans leurs projets et audite la plateforme régulièrement vis-à-vis des exigences des différents organismes de contrôle.
-	\item \textbf{l’équipe Infrastructure} : garantit la fiabilité et le bon fonctionnement de l’infrastructure cloud, hébergée sur AWS. Elle effectue des tâches liées au SRE et au DevOps, gère la montée en charge (\emph{scaling}), l’observabilité et la résilience des services.
+	\item \textbf{l’équipe Infrastructure} : garantit la fiabilité et le bon fonctionnement de l’infrastructure cloud, hébergée sur \lexique{AWS}. Elle effectue des tâches liées au SRE et au DevOps, gère la montée en charge (\emph{scaling}), l’observabilité et la résilience des services.
 	\item \textbf{l’équipe Paiement} : déploie et maintient l’ensemble des solutions pour les dépôts et les retraits d’argent. Elle intègre de nouveaux prestataires et veille au respect des normes de sécurité bancaire PCI DSS.
 	\item \textbf{l’équipe Entertainment} : a pour but de développer et de maintenir techniquement les différentes opérations spéciales, en touchant aussi bien au front-end qu’au back-end, pour le poker et les paris sportifs.
 	\item \textbf{l’équipe Tooling} : conçoit et maintient des outils pour accroître la productivité de toutes les équipes techniques.
@@ -71,14 +71,12 @@ responsable du service réellement impacté, et non diffuser une alerte généri
 
 \section{L'équipe Infrastructure}
 
-L'équipe Infrastructure est une équipe transverse et essentielle de Winamax. En lien avec le CTO, elle
-décide et met en œuvre l'orientation technologique de l'entreprise, comme la migration vers AWS
+L'équipe Infrastructure (équipe que j'ai intégré lors de mon stage) est une équipe transverse et essentielle de Winamax. En lien avec le CTO, elle
+décide et met en œuvre l'orientation technologique de l'entreprise, comme la migration vers \lexique{AWS}
 décidée en 2018. Sa démarche relève de l'ingénierie de la fiabilité (\emph{Site Reliability Engineering},
 ou SRE) : elle traite la fiabilité de la plateforme comme un problème d'ingénierie logicielle. Tout y est
-décrit en code et versionné — l'Infrastructure as Code (IaC), généralisée via Terraform —, automatisé,
-et surtout mesuré grâce à une observabilité poussée. Celle-ci repose sur les trois piliers du SRE : les
-métriques (Prometheus), les logs et les traces distribuées (OpenTelemetry et Jaeger), l'ensemble étant
-visualisé dans Grafana.
+décrit en code et versionné, automatisé et surtout mesuré grâce à une observabilité poussée. Celle-ci repose sur les trois outils d'observabilité du SRE : les
+\lexique{métriques}, les \lexique{logs} et les \lexique{traces} distribuées, l'ensemble étant visualisé dans Grafana.
 
 L'équipe est responsable à la fois de la mise à disposition des différents environnements, de
 l'accompagnement des équipes dans le déploiement de leurs services et de la maintenance de ces
@@ -89,8 +87,8 @@ derniers. Elle prend notamment en charge plusieurs points critiques et communs �
 	\item Provisionnement des machines nécessaires aux équipes ;
 	\item Adressage des différentes machines et conteneurs, et filtrage des flux réseau entre les services ;
 	\item Gestion de l'API Gateway (Kong) ;
-	\item Déploiement des outils communs : Grafana, Prometheus, Jaeger ;
-	\item Gestion de la stack d'observabilité : collecte des métriques, des logs et des traces distribuées ;
+	\item Déploiement des outils communs : Grafana, \lexique{Prometheus}, Jaeger ;
+	\item Gestion de la stack d'observabilité : collecte des \lexique{métriques}, des \lexique{logs} et des \lexique{traces} distribuées ;
 	\item Gestion des datastores pour les équipes.
 \end{itemize}
 
@@ -102,10 +100,8 @@ détection d'un problème sur la plateforme à la notification de la bonne perso
 \section{Contexte technologique}
 
 Historiquement, l'ensemble des technologies de Winamax était déployé sur des serveurs sur site (on-
-premise). Entre 2018 et 2022, la plateforme a été majoritairement migrée vers Amazon Web Services
-(AWS). Quelques serveurs demeurent toutefois dans des datacenters parisiens, hébergeant des
-services liés à la régulation que la loi interdit de migrer vers le cloud. L'organisation AWS de Winamax
-est découpée en de multiples comptes, un pour chaque environnement ou fonctionnalité : Production,
+premise). Entre 2018 et 2022, la plateforme a été entièrement migrée vers Amazon Web Services
+(\lexique{AWS}).  L'organisation \lexique{AWS} de Winamax est découpée en de multiples comptes, un pour chaque environnement ou fonctionnalité : Production,
 Prelive, Développement, PCIDSS-prod, PCIDSS-dev, Tools, Network, Keys, IT, Stacksets, Users \ldots
 
 Côté collaboration, les équipes s'appuient sur Google Workspace, Redmine pour les tickets, Slack pour la communication interne et GitHub pour le code
@@ -113,21 +109,7 @@ source. Slack joue un rôle central dans la problématique d'alerting, puisqu'il
 canal de notification.
 
 Sur le plan de l'observabilité, la plateforme combine plusieurs briques : Amazon CloudWatch, principalement pour les
-métriques et les logs d'infrastructure, Amazon Managed Service for Prometheus (AMP), essentiellement pour les
-métriques applicatives collectées par des collecteurs OpenTelemetry, et Grafana pour la visualisation.
+\lexique{métriques} et les \lexique{logs} d'infrastructure, Amazon Managed Service for \lexique{Prometheus} (AMP), essentiellement pour les
+\lexique{métriques} applicatives collectées par des collecteurs \lexique{OpenTelemetry}, et Grafana pour la visualisation.
 C'est sur cet écosystème riche que repose le système d'alerting, objet de ce rapport.
 
-\section{Enjeux de conformité et de disponibilité}
-
-L'activité de Winamax est soumise à une régulation stricte : l'agrément délivré par l'ANJ impose des
-obligations fortes de traçabilité des opérations de jeu, de protection des joueurs et de sécurité des
-données financières. C'est cette contrainte réglementaire qui explique le maintien de certains
-serveurs en datacenter, hors du cloud public, ainsi que l'existence de comptes AWS dédiés et
-cloisonnés à la norme PCIDSS (PCIDSS-prod, PCIDSS-dev).
-
-Au-delà de la conformité, Winamax opère une plateforme sollicitée en continu par des millions de
-joueurs, avec des pics d'activité lors des grands événements sportifs : la moindre indisponibilité se
-traduit immédiatement par une dégradation de l'expérience utilisateur, une perte de revenus et un
-risque de réputation. C'est dans ce contexte d'exigence réglementaire et opérationnelle que s'inscrit
-le rôle de l'équipe Infrastructure, et la nécessité d'un système d'alerting fiable, capable de détecter
-rapidement tout incident affectant la disponibilité ou la conformité de la plateforme.

@@ -5,7 +5,7 @@
 La conception proposée repose sur un principe simple mais structurant : une alerte doit représenter
 un risque opérationnel clair, compréhensible et actionnable. La personne d'astreinte alertée doit
 immédiatement savoir quel service pose problème et quel est l'impact pour l'utilisateur, sans avoir à
-corréler manuellement une dizaine de métriques techniques. Pour atteindre cet objectif, quatre règles
+corréler manuellement une dizaine de \lexique{métriques} techniques. Pour atteindre cet objectif, quatre règles
 de conception ont été retenues :
 
 \begin{itemize}
@@ -17,8 +17,8 @@ de conception ont été retenues :
 
 \section{Deux points de vue complémentaires : les méthodes RED et USE}
 
-Pour structurer la surveillance, j'ai retenu deux méthodes reconnues de l'ingénierie SRE \cite{sre-google}, en les appliquant à des types de métriques distincts. La méthode USE
-s'applique aux métriques d'infrastructure et adopte une vue « côté machine », tandis que la méthode RED s'applique aux métriques d'application et adopte une vue « côté client ».
+Pour structurer la surveillance, j'ai retenu deux méthodes reconnues de l'ingénierie SRE, en les appliquant à des types de \lexique{métriques} distincts. La méthode USE
+s'applique aux \lexique{métriques} d'infrastructure et adopte une vue « côté machine », tandis que la méthode RED s'applique aux \lexique{métriques} d'application et adopte une vue « côté client ».
 
 \begin{figure}[h]
 	\centering
@@ -30,7 +30,7 @@ s'applique aux métriques d'infrastructure et adopte une vue « côté machine �
 
 \subsection{La méthode USE (vue côté machine)}
 
-La méthode USE \cite{gregg-use} évalue la santé des composants sous-jacents à travers trois dimensions :
+La méthode USE évalue la santé des composants sous-jacents à travers trois dimensions :
 
 \begin{itemize}
 	\item \textbf{Utilization} (Utilisation) : le pourcentage de temps pendant lequel une ressource est occupée (par exemple CPU ou RAM à 80 \%).
@@ -43,12 +43,12 @@ fassent tomber le service. Elle répond à la question « pourquoi » du point d
 
 \subsection{La méthode RED (vue côté client)}
 
-La méthode RED \cite{wilkie-red} se concentre sur les requêtes applicatives, au plus près de
+La méthode RED se concentre sur les requêtes applicatives, au plus près de
 l'expérience utilisateur, à travers trois dimensions :
 
 \begin{itemize}
 	\item \textbf{Rate} (Débit) : le nombre de requêtes par seconde reçues par le service.
-	\item \textbf{Errors} (Erreurs) : le nombre de requêtes qui échouent (par exemple un statut JSON-RPC différent de 200).
+	\item \textbf{Errors} (Erreurs) : le nombre de requêtes qui échouent.
 	\item \textbf{Duration} (Durée) : le temps nécessaire pour traiter les requêtes, c'est-à-dire la latence.
 \end{itemize}
 
@@ -59,51 +59,48 @@ En résumé, le RED nous dit qu'il y a un problème pour l'utilisateur, tandis q
 comprendre pourquoi du point de vue de la machine. C'est la combinaison de ces deux vues qui
 permet à la fois d'alerter au bon moment et de diagnostiquer rapidement.
 
-\section{Des métriques d'application au cœur de l'alerting}
+\section{Des \lexique{métriques} d'application au cœur de l'alerting}
 
-Le principal levier de la nouvelle solution consiste à déplacer l'alerting des métriques d'infrastructure
-vers les métriques d'application. Jusqu'ici, les alertes reposaient presque exclusivement sur des
+Le principal levier de la nouvelle solution consiste à déplacer l'alerting des \lexique{métriques} d'infrastructure
+vers les \lexique{métriques} d'application. Jusqu'ici, les alertes reposaient presque exclusivement sur des
 indicateurs techniques collectés par CloudWatch — par exemple une alarme du type
 \texttt{CPUUtilization > 80 \%} pendant cinq minutes. Ces signaux décrivent l'état des machines, mais
 pas ce que vivent réellement les joueurs.
 
 Or la plateforme dispose déjà d'une source riche d'informations applicatives. Les services de Winamax
-communiquent entre eux via des API au format JSON-RPC : un protocole simple où un service en appelle
+communiquent entre eux via des API au format \lexique{JSON-RPC} : un protocole simple où un service en appelle
 un autre en lui envoyant un message structuré en JSON (le format texte standard d'échange de données
-sur le web). Toutes ces requêtes traversent un \emph{middleware} — une couche logicielle commune,
+sur le web). Toutes ces requêtes traversent un \emph{\lexique{middleware}} — une couche logicielle commune,
 placée sur le chemin de chaque appel, qui les traite de façon transparente sans que chaque équipe ait à
 la réécrire.
 
-Ce middleware est \emph{instrumenté} avec OpenTelemetry, un standard d'observabilité : à chaque
-requête, il produit automatiquement de la télémétrie qui décrit ce qui s'est passé. Cette instrumentation
-n'est pas, en soi, une métrique ; c'est à partir d'elle que sont ensuite calculées des métriques
+Ce middleware est \emph{instrumenté} avec \lexique{OpenTelemetry}, un standard d'observabilité : à chaque
+requête, il produit automatiquement de la télémétrie qui décrit ce qui s'est passé. C'est à partir de cette instrumentation que sont ensuite calculées des \lexique{métriques}
 applicatives — nombre de requêtes, taux d'erreur, temps de réponse — qui sont exportées vers AMP
-(Amazon Managed Service for Prometheus). Ces métriques existaient donc déjà, mais n'étaient pas
+(Amazon Managed Service for \lexique{Prometheus}). Ces \lexique{métriques} existaient donc déjà, mais n'étaient pas
 exploitées pour l'alerting. Les brancher à la chaîne d'alerte constitue le cœur de ma contribution : elles
 permettent d'alerter au niveau du métier — le comportement des services tel que les joueurs le
 perçoivent — et non plus seulement au niveau des ressources techniques.
 
-Cette bascule est rendue possible par Prometheus et son langage de requêtes, PromQL. Là où
-CloudWatch se limite pour l'essentiel à des seuils sur des métriques d'infrastructure, PromQL permet
+Cette bascule est rendue possible par \lexique{Prometheus} et son langage de requêtes, PromQL. Là où
+CloudWatch se limite pour l'essentiel à des seuils sur des \lexique{métriques} d'infrastructure, PromQL permet
 d'exprimer des conditions fines et directement liées à l'expérience utilisateur. Sur cette base, j'ai
-standardisé trois métriques appliquées aux API de la plateforme :
+standardisé trois \lexique{métriques} appliquées aux API de la plateforme :
 
 \begin{itemize}
-	\item \textbf{Latency P99} : le temps de réponse du 1 \% des requêtes les plus lentes, révélateur d'une lenteur ressentie par les joueurs ;
-	\item \textbf{Error Rate} : la proportion de requêtes en échec, calculée à partir du statut JSON-RPC renvoyé par chaque service ;
+	\item \textbf{Latency P99} : le temps de réponse maximum pour 99 \% des requêtes ;
+	\item \textbf{Error Rate} : la proportion de requêtes en échec, calculée à partir du statut \lexique{JSON-RPC} renvoyé par chaque service ;
 	\item \textbf{Service Down} : la chute anormale du volume de requêtes reçues par un service, signe qu'il ne répond plus.
 \end{itemize}
 
-Prises ensemble, ces métriques traduisent directement l'impact sur l'utilisateur : une hausse du taux
+Prises ensemble, ces \lexique{métriques} traduisent directement l'impact sur l'utilisateur : une hausse du taux
 d'erreur sur l'API de dépôt signale immédiatement qu'un joueur ne parvient plus à déposer d'argent —
-une information bien plus actionnable qu'un simple pic de CPU. Au-delà de ces trois indicateurs
-standards, PromQL offre à chaque équipe la liberté de définir ses propres alertes métier, au plus près
-de la réalité de son service.
+une information bien plus actionnable qu'un simple pic de CPU.
 
 \section{Les niveaux de criticité}
 
 Afin de ne solliciter les équipes d'astreinte qu'en cas de problèmes réellement critique, un niveau de
-criticité est attribué à chaque alerte, sous forme de tags ou de labels sur les règles Prometheus. Quatre
+criticité est attribué à chaque alerte, sous forme de tags ou de labels sur les règles \lexique{Prometheus}. Quatre
 niveaux ont été définis.
 
 \begin{table}[h]
@@ -152,13 +149,12 @@ les autres alertes vers des canaux consultables sans urgence.
 		\hline
 		Toutes & DEV / PRELIVE & Slack (\texttt{\#\$\{TEAM\}-\$\{ENV\}}) \\
 		\hline
-		Logs & Tous & Slack (\texttt{\#\$\{TEAM\}-logs-\$\{ENV\}}) \\
+		\lexique{Logs} & Tous & Slack (\texttt{\#\$\{TEAM\}-logs-\$\{ENV\}}) \\
 		\hline
 	\end{tabular}
 \end{table}
 
-En dehors de la production (environnements de développement et de pré-production), même une alerte
-P1 ne doit pas déranger l'astreinte : un simple message est envoyé sur le canal Slack dédié à l'équipe
+En dehors de la production, même une alerte P1 ne doit pas déranger l'astreinte : un simple message est envoyé sur le canal Slack dédié à l'équipe
 concernée. En revanche, pour les alertes P1 et P2 en production, il est impératif de réveiller la personne
 d'astreinte, en plus de l'envoi du message sur le canal de l'équipe impactée. Chaque équipe dispose ainsi de ses propres canaux, ce qui garantit
 que l'alerte parvient bien à la personne experte du service en cause.
@@ -174,7 +170,7 @@ l'alerte intègre les warnings susceptibles d'en être la cause, comme un ralent
 d'une base de données.
 
 Chaque alerte est en outre associée à un runbook — une fiche décrivant la marche à suivre pour
-diagnostiquer et résoudre le problème — comprenant un lien direct vers le tableau de bord (dashboard)
+diagnostiquer et résoudre le problème — et à un lien direct vers le tableau de bord (dashboard)
 Grafana du service concerné. Ce tableau de bord offre une visualisation détaillée permettant d'identifier
 rapidement la ou les fonctions problématiques du service. Le runbook constitue ainsi un point d'entrée
 unique pour comprendre l'alerte et engager la résolution, sans perte de temps en recherche

@@ -14,7 +14,7 @@ Ce rapport présente les travaux menés durant mon stage de fin d’études chez
 l’équipe Infrastructure, autour de la refonte de ce système d’alerting. Le point de départ du sujet est un
 constat concret et partagé par les équipes : le système d’alertes existant produit un volume important de
 notifications, dont une partie significative reste peu pertinente pour l’astreinte. De nombreuses alarmes
-sont en effet construites autour de métriques de causes — par exemple une consommation de CPU
+sont en effet construites autour de \lexique{métriques} de causes — par exemple une consommation de CPU
 ou de mémoire élevée — plutôt qu’autour de conséquences directement corrélées à un impact utilisateur.
 Cette situation augmente la charge cognitive des équipes, provoque des réveils inutiles et peut retarder
 l’identification du service réellement en difficulté.
@@ -25,11 +25,9 @@ simple paramétrage technique, le sujet implique une véritable démarche d’in
 conception d’un modèle d’observabilité, choix d’une architecture cible, développement en Infrastructure
 as Code, et réflexion sur la gouvernance et la validation continue de la qualité des alertes.
 
-Le présent rapport est structuré en sept chapitres. Le premier présente l’entreprise Winamax, son
+Le présent rapport est structuré en six chapitres. Le premier présente l’entreprise Winamax, son
 organisation technique et son contexte technologique. Le deuxième détaille le sujet, les motivations et les
 objectifs du stage. Le troisième analyse le système d’alerting actuel et ses limites. Le quatrième décrit la
 conception de la nouvelle solution, fondée sur les méthodes RED et USE et sur des niveaux de criticité
-explicites. Le cinquième expose la mise en œuvre technique de cette solution. Le sixième revient sur
-une expérience transverse marquante : mes deux semaines de « fast », dédiées au support quotidien des
-équipes de développement. Enfin, le septième chapitre dresse le bilan du travail, les gains attendus et les
+explicites. Le cinquième expose la mise en œuvre technique de cette solution. Enfin, le sixième chapitre dresse le bilan du travail, les gains attendus et les
 perspectives d’évolution.

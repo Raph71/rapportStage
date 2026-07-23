@@ -42,9 +42,9 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 		\hline
 		target-group-cloudwatch-alarm & Alarmes des target groups ALB pilotées par tags (5XX, 4XX, UnHealthyHostCount). \\
 		\hline
-		cloudwatch-log-groups-stream & Gestion des filtres d'abonnement et alarmes des groupes de logs (ECS, Lambda, Batch). \\
+		cloudwatch-log-groups-stream & Gestion des filtres d'abonnement et alarmes des groupes de \lexique{logs} (ECS, \lexique{Lambda}, Batch). \\
 		\hline
-		cloudwatch-logs-errors-to-slack & Écoute, filtrage, dédoublonnage et publication des logs d'erreur (EMF, SNS, SQS). \\
+		cloudwatch-logs-errors-to-slack & Écoute, filtrage, dédoublonnage et publication des \lexique{logs} d'erreur (EMF, SNS, SQS). \\
 		\hline
 		rules-cloudwatch-log-groups-stream & Consommation SQS et envoi des messages sur le bon canal Slack. \\
 		\hline
@@ -69,7 +69,7 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 		\hline
 		Environment & \texttt{var.environment} -- prod / dev / prelive \\
 		\hline
-		Accountid & \texttt{var.accountId} -- compte AWS \\
+		Accountid & \texttt{var.accountId} -- compte \lexique{AWS} \\
 		\hline
 		GitHub & \texttt{terraform/shared/shared-alarms/\$\{var.team\}} \\
 		\hline
@@ -86,19 +86,34 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 	\texttt{alerts/\$\{Family\}/\$\{Team\}/\$\{Service\}/\$\{AlarmName\}}
 \end{center}
 
-\section{Annexe C — Glossaire}
+\section{Annexe C — Lexique}
 
-\begin{table}[h]
-	\centering
-	\caption{Glossaire des termes et acronymes utilisés dans ce rapport}
-	\label{tab:annexe-glossaire}
-	\begin{tabular}{|p{0.2\textwidth}|p{0.65\textwidth}|}
-		\hline
-		\textbf{Terme} & \textbf{Définition} \\
-		\hline
+\begin{longtable}{|p{0.2\textwidth}|p{0.65\textwidth}|}
+	\caption{Lexique des termes et acronymes utilisés dans ce rapport}
+	\label{tab:annexe-glossaire} \\
+	\hline
+	\textbf{Terme} & \textbf{Définition} \\
+	\hline
+	\endfirsthead
+
+	\multicolumn{2}{c}{\tablename\ \thetable{} -- suite de la page précédente} \\
+	\hline
+	\textbf{Terme} & \textbf{Définition} \\
+	\hline
+	\endhead
+
+	\hline
+	\multicolumn{2}{r}{\textit{Suite page suivante}} \\
+	\endfoot
+
+	\hline
+	\endlastfoot
+
 		AMP & Amazon Managed Service for Prometheus -- service géré de stockage des métriques Prometheus. \\
 		\hline
 		Alertmanager & Composant de l'écosystème Prometheus, managé par AMP, qui reçoit les alertes déclenchées et les transmet à incident.io. \\
+		\hline
+		AWS & Amazon Web Services -- fournisseur de cloud sur lequel est hébergée l'infrastructure de Winamax (calcul, réseau, stockage, messagerie...). \\
 		\hline
 		CI/CD & Intégration et déploiement continus -- chaîne d'automatisation qui teste puis met en production les changements de code. \\
 		\hline
@@ -128,11 +143,17 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 		\hline
 		Lambda & Service AWS permettant d'exécuter de petits programmes à la demande, sans serveur à provisionner ni gérer. \\
 		\hline
+		Logs & Journaux d'événements horodatés produits par une application ou un service, utilisés pour le débogage, l'audit et le diagnostic d'incidents. \\
+		\hline
+		Métriques & Valeurs numériques mesurées à intervalles réguliers (latence, taux d'erreur, consommation CPU...) permettant de quantifier l'état d'un service ou d'une machine. \\
+		\hline
 		Middleware & Couche logicielle commune, placée sur le chemin de chaque requête, qui la traite de façon transparente (par exemple pour la mesurer). \\
 		\hline
 		MTTD / MTTR & Mean Time To Detect / Mean Time To Repair -- temps moyens de détection et de réparation d'un incident. \\
 		\hline
 		OpenTelemetry (OTel) & Standard d'observabilité servant à instrumenter le code pour produire de la télémétrie (traces et métriques). \\
+		\hline
+		Prometheus & Système open-source de collecte et de requêtage de métriques, utilisé ici au travers d'AMP pour l'alerting applicatif. \\
 		\hline
 		Promrule & Fichier de configuration lu par Prometheus définissant une règle d'alerte (expression PromQL, durée, labels). \\
 		\hline
@@ -148,9 +169,10 @@ après la refonte, également présentés dans le corps du rapport (chapitres 3 
 		\hline
 		Target group (ALB) & Groupe de cibles derrière un répartiteur de charge (Application Load Balancer) ; ses métriques (codes 4XX/5XX, hôtes en bonne santé) servent à surveiller un service. \\
 		\hline
+		Traces & Suivi du parcours d'une requête à travers les différents services d'une architecture distribuée, découpé en étapes (spans), utilisé pour le diagnostic. \\
+		\hline
 		USE & Utilization, Saturation, Errors -- méthode d'observabilité orientée ressources (métriques d'infrastructure). \\
 		\hline
 		VPC & Virtual Private Cloud -- réseau privé isolé au sein d'AWS, dans lequel sont déployées les ressources d'un périmètre donné. \\
-		\hline
-	\end{tabular}
-\end{table}
+	\hline
+\end{longtable}

@@ -2,14 +2,14 @@
 
 \section{Architecture actuelle de la chaîne d'alerting}
 
-L'architecture étudiée repose sur un ensemble de services AWS. Les applications de Winamax
+L'architecture étudiée repose sur un ensemble de services \lexique{AWS}. Les applications de Winamax
 s'exécutent dans des conteneurs regroupés au sein de clusters ECS (\emph{Elastic Container Service}, le
-service d'AWS qui héberge et orchestre les conteneurs). Le fonctionnement observé peut se résumer
+service d'\lexique{AWS} qui héberge et orchestre les conteneurs). Le fonctionnement observé peut se résumer
 ainsi : chaque changement sur un service (création, mise à jour, suppression) est enregistré par
-CloudTrail — le journal d'audit qui trace toutes les actions réalisées sur le compte AWS — puis relayé
-par EventBridge, le bus d'événements qui déclenche des traitements en réaction à ces changements. Ces
-événements exécutent alors des fonctions Lambda (de petits programmes lancés à la demande, sans
-serveur à gérer) qui créent ou suppriment des alarmes dans CloudWatch, l'outil de surveillance d'AWS.
+\lexique{CloudTrail} — le journal d'audit qui trace toutes les actions réalisées sur le compte \lexique{AWS} — puis relayé
+par \lexique{EventBridge}, le bus d'événements qui déclenche des traitements en réaction à ces changements. Ces
+événements exécutent alors des fonctions \lexique{Lambda} (de petits programmes lancés à la demande, sans
+serveur à gérer) qui créent ou suppriment des alarmes dans CloudWatch, l'outil de surveillance d'\lexique{AWS}.
 Enfin, les alarmes déclenchées émettent des notifications qui, via un service de messagerie (un topic
 SNS puis une file d'attente SQS), aboutissent sur les canaux de diffusion, principalement Slack.
 
@@ -28,7 +28,7 @@ pertinentes pour les personnes d'astreinte.
 
 \section{Inventaire des composants existants}
 
-L'étude détaillée du système m'a conduit à recenser les principales fonctions Lambda qui composent
+L'étude détaillée du système m'a conduit à recenser les principales fonctions \lexique{Lambda} qui composent
 la chaîne actuelle. Chacune joue un rôle précis, mais leur enchaînement rend le système difficile à
 appréhender dans son ensemble.
 
@@ -44,9 +44,9 @@ appréhender dans son ensemble.
 		\hline
 		target-group-cloudwatch-alarm & Gère automatiquement les alarmes CloudWatch pour les target groups des Application Load Balancers, en fonction de tags de ressources (codes 5XX, 4XX, UnHealthyHostCount...). \\
 		\hline
-		cloudwatch-log-groups-stream & Gère automatiquement les filtres d'abonnement CloudWatch Logs et les alarmes pour les groupes de logs ECS, Lambda et Batch, déclenchés par les mises à jour de ressources (événements CloudTrail). \\
+		cloudwatch-log-groups-stream & Gère automatiquement les filtres d'abonnement CloudWatch Logs et les alarmes pour les groupes de \lexique{logs} ECS, \lexique{Lambda} et Batch, déclenchés par les mises à jour de ressources (événements \lexique{CloudTrail}). \\
 		\hline
-		cloudwatch-logs-errors-to-slack & Écoute les événements de logs applicatifs, détermine leur pertinence (niveau error), applique des filtres anti faux-positifs, dédoublonne, journalise les métriques au format EMF et publie les logs intéressants vers SNS puis une file SQS. \\
+		cloudwatch-logs-errors-to-slack & Écoute les événements de \lexique{logs} applicatifs, détermine leur pertinence (niveau error), applique des filtres anti faux-positifs, dédoublonne, journalise les \lexique{métriques} au format EMF et publie les \lexique{logs} intéressants vers SNS puis une file SQS. \\
 		\hline
 		rules-cloudwatch-log-groups-stream & Consomme les messages de la file SQS, construit un message Slack et détermine le canal de destination (généralement selon l'équipe). \\
 		\hline
@@ -62,7 +62,7 @@ fortes limites lorsqu'il s'agit d'introduire de la criticité ou d'harmoniser le
 \section{Le problème de fond : alerter sur les causes plutôt que sur les conséquences}
 
 L'étude de l'existant met en évidence une limite majeure : une partie significative des alertes est
-construite autour de métriques de causes (CPU, mémoire, etc.) plutôt que des conséquences directement
+construite autour de \lexique{métriques} de causes (CPU, mémoire, etc.) plutôt que des conséquences directement
 corrélées à un impact utilisateur. Concrètement, le système sait dire « la mémoire de ce conteneur est
 à 80 \% » mais pas « les utilisateurs ne peuvent plus déposer d'argent ». Or c'est bien la seconde
 information qui importe le plus pour l'astreinte.
@@ -80,7 +80,7 @@ et n'avoir aucun impact sur les joueurs. À l'inverse, une latence anormale sur 
 aucune alarme ne la surveille. L'efficacité globale de la réponse à incident s'en trouve dégradée,
 malgré une instrumentation technique pourtant riche.
 
-Les alertes sur les causes sont créées automatiquement par les fonctions Lambda. 
+Les alertes sur les causes sont créées automatiquement par les fonctions \lexique{Lambda}. 
 Le système permet aussi d'alerter sur des conséquences via des scripts personnalisés, mais ces derniers sont peu utilisés et ne sont pas standardisés. 
 
 \section{Avantages et limites de la solution existante}
@@ -100,10 +100,10 @@ Cette analyse contradictoire a guidé les choix de conception de la nouvelle sol
 		Perte de contrôle sur la création des alertes, aucune visibilité des équipes sur les alertes créées \\
 		\hline
 		Les développeurs se concentrent sur leur code &
-		Chaîne trop complexe : plusieurs Lambdas avant l'envoi sur Slack \\
+		Chaîne trop complexe : plusieurs \lexique{Lambda}s avant l'envoi sur Slack \\
 		\hline
 		Configuration par tags sans toucher à l'infrastructure &
-		Si une Lambda échoue, aucune nouvelle tentative : manque de visibilité \\
+		Si une \lexique{Lambda} échoue, aucune nouvelle tentative : manque de visibilité \\
 		\hline
 		 & De nombreuses valeurs écrites en dur dans le code, peu maintenable \\
 		\hline
@@ -165,13 +165,13 @@ système d'alerting actuel :
 	de l'alarme déclenchée, sans information sur l'impact ni pistes de diagnostic, ce qui oblige la
 	personne d'astreinte à reconstituer le contexte manuellement ;
 	\item \textbf{Déclaration des alertes dispersée} : les alertes peuvent être définies à plusieurs
-	endroits différents (tags de ressources, scripts personnalisés, configuration des Lambdas), sans
+	endroits différents (tags de ressources, scripts personnalisés, configuration des \lexique{Lambda}s), sans
 	guideline commune à destination des développeurs ;
 	\item \textbf{Pertinence limitée des alertes} : une part importante des alertes porte sur des causes
 	techniques (CPU, mémoire) plutôt que sur des conséquences réellement perçues par les utilisateurs,
 	ce qui entraîne des réveils pour des situations non critiques et une fatigue d'alerte ;
 	\item \textbf{Automatisation opaque} : la création des alarmes repose sur un ensemble de fonctions
-	Lambda qui s'exécutent automatiquement en réaction aux événements CloudTrail, sans visibilité ni
+	\lexique{Lambda} qui s'exécutent automatiquement en réaction aux événements \lexique{CloudTrail}, sans visibilité ni
 	contrôle direct des équipes sur les alertes ainsi créées.
 \end{itemize}
 

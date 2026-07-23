@@ -3,14 +3,14 @@
 \section{Architecture cible}
 
 La solution que j'ai conçue s'appuie sur une chaîne d'alerting entièrement pilotée par le code. Les
-métriques d'infrastructure sont surveillées via CloudWatch, tandis que les métriques d'application sont
-collectées par les collecteurs OpenTelemetry et stockées dans AMP. 
+\lexique{métriques} d'infrastructure sont surveillées via CloudWatch, tandis que les \lexique{métriques} d'application sont
+collectées par les collecteurs \lexique{OpenTelemetry} et stockées dans AMP. 
 Les règles d'alerte, décrites en Terraform, sont déployées automatiquement sous forme d'alarmes
-dans CloudWatch et de règles Prometheus dans AMP. Lorsqu'une alerte se déclenche, elle est transmise
+dans CloudWatch et de règles \lexique{Prometheus} dans AMP. Lorsqu'une alerte se déclenche, elle est transmise
 à incident.io, les deux sources suivant un chemin légèrement différent. Depuis AMP, l'Alertmanager
 managé transmet directement l'alerte, déjà porteuse de tout son contexte (priorité, description, liens)
-grâce aux \emph{labels} de la règle Prometheus. Depuis CloudWatch, l'alarme — bien plus sommaire —
-est d'abord publiée sur un topic SNS, puis une fonction Lambda l'enrichit du même contexte avant de la
+grâce aux \emph{labels} de la règle \lexique{Prometheus}. Depuis CloudWatch, l'alarme — bien plus sommaire —
+est d'abord publiée sur un topic SNS, puis une fonction \lexique{Lambda} l'enrichit du même contexte avant de la
 transmettre à incident.io, afin que les deux sources produisent des notifications homogènes.
 
 C'est ensuite incident.io qui prend en charge le regroupement (grouping), le routage et l'escalade des
@@ -29,7 +29,7 @@ notification push ou e-mail).
 
 Pour industrialiser la création des alertes, j'ai développé un module Terraform unique, réutilisable
 par toutes les équipes. Ce module sait créer des alertes aussi bien dans CloudWatch que dans
-Prometheus, sans que les développeurs aient besoin de connaître le fonctionnement interne de ces
+\lexique{Prometheus}, sans que les développeurs aient besoin de connaître le fonctionnement interne de ces
 outils.
 
 Il propose deux types d'alertes prêtes à l'emploi, correspondant aux méthodes présentées au chapitre
@@ -37,7 +37,7 @@ précédent : des alertes \textbf{USE} (santé des ressources machine : CPU, mé
 4XX/5XX, temps de réponse...) et des alertes \textbf{RED} (expérience utilisateur : taux d'erreur,
 latence...). Si un
 besoin plus spécifique se présente, une équipe peut également déclarer une \textbf{alerte
-personnalisée}, en écrivant elle-même sa requête Prometheus (PromQL) ou sa configuration
+personnalisée}, en écrivant elle-même sa requête \lexique{Prometheus} (PromQL) ou sa configuration
 CloudWatch.
 
 Chaque équipe possède son propre dossier dans le dépôt du module et y déclare ses alertes, dans le
@@ -167,7 +167,7 @@ afin de limiter les risques de régression et de faciliter l'appropriation par l
 \begin{itemize}
 	\item \textbf{Phase 1 -- Déploiement de la fondation technique} : mise en place de l'infrastructure et du code nécessaires à l'implémentation complète de la solution.
 	\item \textbf{Phase 2 -- Coexistence et pilotage (double-run)} : l'ancien système n'est pas immédiatement désactivé ; la nouvelle solution s'exécute en parallèle sur le service d'une équipe pilote, ce qui permet de comparer les alertes émises par les deux systèmes et d'accompagner les développeurs dans l'ajustement des seuils.
-	\item \textbf{Phase 3 -- Déclassement de l'ancien système} : une fois la fiabilité de la nouvelle solution démontrée, les alertes de l'ancienne solution sont mises en sourdine, sa visualisation est maintenue temporairement pour observation, avant sa désactivation définitive par la suppression des anciennes Lambdas.
+	\item \textbf{Phase 3 -- Déclassement de l'ancien système} : une fois la fiabilité de la nouvelle solution démontrée, les alertes de l'ancienne solution sont mises en sourdine, sa visualisation est maintenue temporairement pour observation, avant sa désactivation définitive par la suppression des anciennes \lexique{Lambda}s.
 \end{itemize}
 
 Cette trajectoire prudente instaure une confiance progressive dans la nouvelle solution et évite tout
@@ -210,7 +210,7 @@ identifiés lors du diagnostic.
 		Notification enrichie : description, dashboard Grafana, runbook et chemin d'escalade \\
 		\hline
 		Déclaration des alertes &
-		Dispersée entre tags de ressources, scripts personnalisés et configuration des Lambdas, sans guideline commune &
+		Dispersée entre tags de ressources, scripts personnalisés et configuration des \lexique{Lambda}s, sans guideline commune &
 		Centralisée dans un module Terraform partagé, configurée par chaque équipe via des fichiers \texttt{.tfvars} versionnés \\
 		\hline
 		Pertinence des alertes &
@@ -222,7 +222,7 @@ identifiés lors du diagnostic.
 		Tags \texttt{Team} et \texttt{Service} systématiques, routage automatique vers le bon canal Slack \\
 		\hline
 		Automatisation &
-		Fonctions Lambda opaques, sans visibilité ni contrôle des équipes &
+		Fonctions \lexique{Lambda} opaques, sans visibilité ni contrôle des équipes &
 		Règles déclarées en code, versionnées et revues par Pull Request \\
 		\hline
 	\end{tabular}
